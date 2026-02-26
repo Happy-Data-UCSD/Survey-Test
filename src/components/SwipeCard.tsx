@@ -6,25 +6,49 @@ export type Direction = 'up' | 'down' | 'left' | 'right' | null
 
 interface SwipeCardProps {
     question: string
-    options: {
-        up: string
-        down: string
-        left: string
-        right: string
-    }
+    options: { up: string; down: string; left: string; right: string }
     onAnswer: (dir: Direction) => void
     onDragStart?: () => void
 }
 
+const ARROWS: Record<string, string> = { up: '↑', down: '↓', left: '←', right: '→' }
+
+function OptionPill({ dir, label, active }: { dir: string; label: string; active: boolean }) {
+    return (
+        <div style={{
+            flex: 1,
+            padding: '8px 10px',
+            borderRadius: '10px',
+            background: active ? 'var(--color-primary)' : '#F4F4F4',
+            border: `2px solid ${active ? 'var(--color-primary-dark)' : '#E0E0E0'}`,
+            borderBottom: `3px solid ${active ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
+            color: active ? 'white' : 'var(--color-text-muted)',
+            fontWeight: '700',
+            fontSize: '0.78rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            transition: 'all 0.12s ease',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            overflow: 'hidden',
+        }}>
+            <span style={{ flexShrink: 0, fontSize: '0.85rem', opacity: active ? 1 : 0.6 }}>
+                {ARROWS[dir]}
+            </span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {label}
+            </span>
+        </div>
+    )
+}
+
 export function SwipeCard({ question, options, onAnswer, onDragStart }: SwipeCardProps) {
-    // Unused state removed
     const [activeDir, setActiveDir] = useState<Direction>(null)
 
-    // Motion values
     const mx = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
     const my = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
-
-    const rotate = useTransform(mx, [-200, 200], [-15, 15])
+    const rotate = useTransform(mx, [-200, 200], [-12, 12])
 
     const threshold = 100
 
@@ -34,101 +58,81 @@ export function SwipeCard({ question, options, onAnswer, onDragStart }: SwipeCar
         if (down) {
             mx.set(dx)
             my.set(dy)
-
-            // Determine dominant direction
             if (Math.abs(dx) > Math.abs(dy)) {
-                if (dx > threshold) setActiveDir('right')
-                else if (dx < -threshold) setActiveDir('left')
-                else setActiveDir(null)
+                setActiveDir(dx > threshold ? 'right' : dx < -threshold ? 'left' : null)
             } else {
-                if (dy > threshold) setActiveDir('down')
-                else if (dy < -threshold) setActiveDir('up')
-                else setActiveDir(null)
+                setActiveDir(dy > threshold ? 'down' : dy < -threshold ? 'up' : null)
             }
         } else {
-            // Release
-            let finalDir = activeDir
+            const finalDir = activeDir
             if (finalDir) {
-                // Swipe away
-                let toX = 0, toY = 0
-                if (finalDir === 'left') toX = -500
-                if (finalDir === 'right') toX = 500
-                if (finalDir === 'up') toY = -500
-                if (finalDir === 'down') toY = 500
-                mx.set(toX)
-                my.set(toY)
+                mx.set(finalDir === 'left' ? -500 : finalDir === 'right' ? 500 : 0)
+                my.set(finalDir === 'up' ? -500 : finalDir === 'down' ? 500 : 0)
                 setTimeout(() => {
                     onAnswer(finalDir)
-                    // Reset
                     mx.set(0, false)
                     my.set(0, false)
                     setActiveDir(null)
                 }, 200)
             } else {
-                // Snap back
                 mx.set(0)
                 my.set(0)
             }
         }
     })
 
-    // Visual cues for direction options
-    const Label = ({ dir, label, active }: { dir: string, label: string, active: boolean }) => {
-        const isTopBottom = dir === 'up' || dir === 'down'
-        return (
-            <div style={{
-                position: 'absolute',
-                [dir === 'up' ? 'top' : dir === 'down' ? 'bottom' : 'top']: dir === 'up' ? '-40px' : dir === 'down' ? '-40px' : '50%',
-                [dir === 'left' ? 'left' : dir === 'right' ? 'right' : 'left']: isTopBottom ? '50%' : '-40px',
-                transform: isTopBottom ? 'translateX(-50%)' : 'translateY(-50%)',
-                opacity: active ? 1 : 0.3,
-                scale: active ? 1.2 : 1,
-                transition: 'all 0.2s',
-                fontWeight: 'bold',
-                color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                background: 'rgba(255,255,255,0.8)',
-                padding: '4px 12px',
-                borderRadius: '12px',
-                boxShadow: active ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-                pointerEvents: 'none'
-            }}>
-                {label}
-            </div>
-        )
-    }
-
     return (
-        <div style={{ position: 'relative', width: '300px', height: '400px' }} className="animate-pop-in">
+        <div style={{ position: 'relative', width: '300px' }} className="animate-pop-in">
             <motion.div
                 {...(bind() as any)}
                 style={{
                     x: mx,
                     y: my,
                     rotate,
-                    width: '100%',
-                    height: '100%',
                     background: 'white',
-                    borderRadius: '24px',
-                    boxShadow: 'var(--shadow-glass)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: '32px',
+                    borderRadius: '20px',
+                    border: `2px solid ${activeDir ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                    borderBottom: `4px solid ${activeDir ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
+                    padding: '28px 22px',
                     cursor: 'grab',
                     touchAction: 'none',
-                    border: '2px solid',
-                    borderColor: activeDir ? 'var(--color-primary)' : 'transparent',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px',
                 }}
-                whileTap={{ cursor: 'grabbing', scale: 0.98 }}
+                whileTap={{ cursor: 'grabbing' }}
             >
-                <h2 style={{ textAlign: 'center', fontSize: '1.5rem', marginBottom: '20px' }}>{question}</h2>
-                <div style={{ fontSize: '3rem', color: 'var(--color-primary)' }}>🤔</div>
+                {/* Question */}
+                <div style={{ textAlign: 'center' }}>
+                    <h2 style={{
+                        fontSize: '1.3rem',
+                        fontWeight: '800',
+                        lineHeight: 1.35,
+                        color: 'var(--color-text)',
+                        marginBottom: '8px',
+                    }}>
+                        {question}
+                    </h2>
+                    <p style={{
+                        fontSize: '0.65rem',
+                        fontWeight: '700',
+                        color: 'var(--color-text-muted)',
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                    }}>
+                        swipe to answer
+                    </p>
+                </div>
 
-                <Label dir="up" label={`⬆️ ${options.up}`} active={activeDir === 'up'} />
-                <Label dir="down" label={`⬇️ ${options.down}`} active={activeDir === 'down'} />
-                <Label dir="left" label={`⬅️ ${options.left}`} active={activeDir === 'left'} />
-                <Label dir="right" label={`➡️ ${options.right}`} active={activeDir === 'right'} />
+                {/* Option grid: up / [left | right] / down */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <OptionPill dir="up" label={options.up} active={activeDir === 'up'} />
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                        <OptionPill dir="left" label={options.left} active={activeDir === 'left'} />
+                        <OptionPill dir="right" label={options.right} active={activeDir === 'right'} />
+                    </div>
+                    <OptionPill dir="down" label={options.down} active={activeDir === 'down'} />
+                </div>
             </motion.div>
         </div>
     )

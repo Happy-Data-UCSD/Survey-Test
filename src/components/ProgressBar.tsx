@@ -1,42 +1,47 @@
 import { Flame } from 'lucide-react'
 
 export function ProgressBar({ current, total, streak }: { current: number, total: number, streak: number }) {
-    const percentage = Math.min(100, Math.max(0, (current / total) * 100));
+    const percentage = Math.min(100, Math.max(0, (current / total) * 100))
 
     return (
-        <div className="glass-nav glass">
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {/* Simple gray background track */}
+        <div className="nav-bar">
+            <div style={{
+                flex: 1,
+                height: '14px',
+                backgroundColor: 'var(--color-border)',
+                borderRadius: '7px',
+                overflow: 'hidden',
+            }}>
                 <div style={{
-                    width: '100%',
-                    height: '16px',
-                    backgroundColor: '#E5E7EB',
-                    borderRadius: '8px',
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}>
-                    {/* Active progress track */}
-                    <div style={{
-                        width: `${percentage}%`,
-                        height: '100%',
-                        backgroundColor: 'var(--color-secondary)',
-                        borderRadius: '8px',
-                        transition: 'width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                    }} />
-                </div>
+                    width: `${percentage}%`,
+                    height: '100%',
+                    backgroundColor: 'var(--color-primary)',
+                    borderRadius: '7px',
+                    boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.12)',
+                    transition: 'width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }} />
             </div>
 
-            {/* Streak Counter */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginLeft: '20px',
-                color: streak > 0 ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                fontWeight: 'bold',
-                fontSize: '1.2rem',
-                gap: '4px'
-            }} className={streak > 0 ? 'animate-pop-in' : ''} key={streak}>
-                <Flame fill={streak > 0 ? 'var(--color-primary)' : 'transparent'} />
+            <div
+                key={streak}
+                className={streak > 0 ? 'animate-pop-in' : ''}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    fontWeight: '800',
+                    fontSize: '1.05rem',
+                    color: streak > 0 ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                    minWidth: '48px',
+                    justifyContent: 'flex-end',
+                }}
+            >
+                <Flame
+                    size={18}
+                    strokeWidth={2.5}
+                    color={streak > 0 ? 'var(--color-accent)' : 'var(--color-text-muted)'}
+                    fill={streak > 0 ? 'var(--color-accent)' : 'none'}
+                />
                 {streak}
             </div>
         </div>

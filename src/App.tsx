@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react'
+import { CheckCircle } from 'lucide-react'
 import { ProgressBar } from './components/ProgressBar'
 import { Companion3D } from './components/Companion3D'
 import { SwipeCard, Direction } from './components/SwipeCard'
 import { useGamifiedSound } from './hooks/useGamifiedSound'
 
-// Mock Survey Data
 const SURVEY_QUESTIONS = [
     {
         id: 1,
@@ -56,7 +56,6 @@ export default function App() {
                 playSuccess()
             }
         }, 600)
-
     }, [currentIndex, playWhoosh, playSuccess])
 
     const currentQuestion = SURVEY_QUESTIONS[currentIndex]
@@ -76,15 +75,12 @@ export default function App() {
                 justifyContent: 'center',
                 height: '100%',
                 width: '100%',
-                paddingTop: '60px' // for nav
+                paddingTop: '64px',
             }}>
-
-                {/* 3D Companion Area */}
-                <div style={{ marginBottom: '20px' }}>
+                <div style={{ marginBottom: '16px' }}>
                     <Companion3D reaction={reaction} />
                 </div>
 
-                {/* Swipe Card Area */}
                 {!isDone ? (
                     <SwipeCard
                         key={currentQuestion.id}
@@ -94,20 +90,42 @@ export default function App() {
                         onDragStart={handleDragStart}
                     />
                 ) : (
-                    <div className="glass animate-pop-in" style={{
-                        padding: '40px',
-                        borderRadius: '24px',
+                    <div className="animate-pop-in" style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '36px 28px',
+                        borderRadius: '20px',
+                        border: '2px solid var(--color-border)',
+                        borderBottom: '4px solid var(--color-border-dark)',
+                        background: 'white',
+                        width: '300px',
                         textAlign: 'center',
-                        maxWidth: '300px'
                     }}>
-                        <h1 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🎉</h1>
-                        <h2 style={{ color: 'var(--color-primary)' }}>Survey Complete!</h2>
-                        <p style={{ color: 'var(--color-text-muted)', marginTop: '10px' }}>
-                            You maintained a {streak} question streak!
-                        </p>
+                        <CheckCircle size={52} color="var(--color-primary)" strokeWidth={1.5} />
+                        <div>
+                            <p style={{
+                                fontSize: '0.65rem',
+                                fontWeight: '700',
+                                color: 'var(--color-text-muted)',
+                                letterSpacing: '0.1em',
+                                textTransform: 'uppercase',
+                                marginBottom: '4px',
+                            }}>
+                                Survey Complete
+                            </p>
+                            <p style={{
+                                fontSize: '1.4rem',
+                                fontWeight: '900',
+                                color: 'var(--color-text)',
+                            }}>
+                                {streak} question streak
+                            </p>
+                        </div>
                         <button
                             className="btn-primary"
-                            style={{ marginTop: '20px', width: '100%' }}
+                            style={{ marginTop: '8px', width: '100%' }}
                             onClick={() => {
                                 setCurrentIndex(0)
                                 setStreak(0)
@@ -115,11 +133,10 @@ export default function App() {
                                 setReaction('idle')
                             }}
                         >
-                            Restart MVP
+                            Start Over
                         </button>
                     </div>
                 )}
-
             </div>
         </>
     )
