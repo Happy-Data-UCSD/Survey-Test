@@ -2,30 +2,52 @@ import { useState, useCallback } from 'react'
 import { CheckCircle } from 'lucide-react'
 import { ProgressBar } from './components/ProgressBar'
 import { Companion3D } from './components/Companion3D'
-import { SwipeCard, Direction } from './components/SwipeCard'
+import { SwipeCard } from './components/GameModes/SwipeCard'
+import { LikertSlider } from './components/GameModes/LikertSlider'
+import { NPSStars } from './components/GameModes/NPSStars'
+import { OpenEndedBox } from './components/GameModes/OpenEndedBox'
+import { MatrixGrid } from './components/GameModes/MatrixGrid'
 import { AnimatedBackground } from './components/AnimatedBackground'
 import { useGamifiedSound } from './hooks/useGamifiedSound'
 
-const SURVEY_QUESTIONS = [
+// Define the shape of our diverse survey questions
+export type SurveyQuestion =
+    | { id: number; type: 'multiple-choice'; question: string; options: { up: string; down: string; left: string; right: string } }
+    | { id: number; type: 'likert'; question: string; options: string[] }
+    | { id: number; type: 'nps'; question: string; scale: number }
+    | { id: number; type: 'open-ended'; question: string }
+    | { id: number; type: 'matrix'; question: string; rows: string[]; columns: string[] }
+
+const SURVEY_QUESTIONS: SurveyQuestion[] = [
     {
         id: 1,
+        type: 'multiple-choice',
         question: "How do you feel about our new branding?",
-        options: { up: "Love it!", down: "Hate it", left: "Needs work", right: "It's okay" }
+        options: { up: "Love it!", down: "Hate it!", left: "Needs work", right: "It's okay" }
     },
     {
         id: 2,
-        question: "Which feature would you use most?",
-        options: { up: "AI Generation", down: "Templates", left: "Drag & Drop", right: "Analytics" }
+        type: 'likert',
+        question: "The software is easy to navigate.",
+        options: ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]
     },
     {
         id: 3,
-        question: "How often do you create surveys?",
-        options: { up: "Daily", down: "Rarely", left: "Weekly", right: "Monthly" }
+        type: 'nps',
+        question: "How likely are you to recommend us?",
+        scale: 10
     },
     {
         id: 4,
-        question: "Would you recommend Happy Data?",
-        options: { up: "Absolutely", down: "Never", left: "Maybe", right: "Likely" }
+        type: 'matrix',
+        question: "Rate the following aspects:",
+        rows: ["Performance", "Design", "Support"],
+        columns: ["Poor", "Fair", "Good", "Excellent"]
+    },
+    {
+        id: 5,
+        type: 'open-ended',
+        question: "What is your biggest daily challenge?"
     }
 ]
 
@@ -41,8 +63,8 @@ export default function App() {
         playInteraction()
     }, [playInteraction])
 
-    const handleAnswer = useCallback((dir: Direction) => {
-        if (!dir) return
+    const handleAnswer = useCallback((answer: string | null) => {
+        if (!answer) return
 
         playWhoosh()
         setStreak(s => s + 1)
@@ -85,13 +107,59 @@ export default function App() {
                 </div>
 
                 {!isDone ? (
-                    <SwipeCard
-                        key={currentQuestion.id}
-                        question={currentQuestion.question}
-                        options={currentQuestion.options}
-                        onAnswer={handleAnswer}
-                        onDragStart={handleDragStart}
-                    />
+                    <div key={currentQuestion.id}>
+                        {(() => {
+                            switch (currentQuestion.type) {
+                                case 'multiple-choice':
+                                    return (
+                                        <SwipeCard
+                                            question={currentQuestion.question}
+                                            options={currentQuestion.options}
+                                            onAnswer={handleAnswer}
+                                            onDragStart={handleDragStart}
+                                        />
+                                    )
+                                case 'likert':
+                                    return (
+                                        <LikertSlider
+                                            question={currentQuestion.question}
+                                            options={currentQuestion.options}
+                                            onAnswer={handleAnswer}
+                                            onInteraction={playInteraction}
+                                        />
+                                    )
+                                case 'nps':
+                                    return (
+                                        <NPSStars
+                                            question={currentQuestion.question}
+                                            scale={currentQuestion.scale}
+                                            onAnswer={handleAnswer}
+                                            onInteraction={playInteraction}
+                                        />
+                                    )
+                                case 'open-ended':
+                                    return (
+                                        <OpenEndedBox
+                                            question={currentQuestion.question}
+                                            onAnswer={handleAnswer}
+                                            onInteraction={playInteraction}
+                                        />
+                                    )
+                                case 'matrix':
+                                    return (
+                                        <MatrixGrid
+                                            question={currentQuestion.question}
+                                            rows={currentQuestion.rows}
+                                            columns={currentQuestion.columns}
+                                            onAnswer={(answers) => handleAnswer(JSON.stringify(answers))}
+                                            onInteraction={playInteraction}
+                                        />
+                                    )
+                                default:
+                                    return null
+                            }
+                        })()}
+                    </div>
                 ) : (
                     <div className="animate-pop-in" style={{
                         display: 'flex',
