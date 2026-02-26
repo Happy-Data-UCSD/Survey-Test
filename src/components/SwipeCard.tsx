@@ -16,27 +16,36 @@ const ARROWS: Record<string, string> = { up: '↑', down: '↓', left: '←', ri
 function OptionPill({ dir, label, active }: { dir: string; label: string; active: boolean }) {
     return (
         <div style={{
-            flex: 1,
-            padding: '8px 10px',
-            borderRadius: '10px',
+            width: '80px',
+            height: '65px',
+            padding: '6px 4px',
+            borderRadius: '12px',
             background: active ? 'var(--color-primary)' : '#F4F4F4',
             border: `2px solid ${active ? 'var(--color-primary-dark)' : '#E0E0E0'}`,
-            borderBottom: `3px solid ${active ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
+            borderBottom: `4px solid ${active ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
             color: active ? 'white' : 'var(--color-text-muted)',
-            fontWeight: '700',
-            fontSize: '0.78rem',
+            fontWeight: '800',
+            fontSize: '0.65rem',
             display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
             alignItems: 'center',
-            gap: '5px',
+            gap: '2px',
             transition: 'all 0.12s ease',
             pointerEvents: 'none',
             userSelect: 'none',
             overflow: 'hidden',
         }}>
-            <span style={{ flexShrink: 0, fontSize: '0.85rem', opacity: active ? 1 : 0.6 }}>
+            <span style={{ fontSize: '1.2rem', opacity: active ? 1 : 0.6, lineHeight: 1 }}>
                 {ARROWS[dir]}
             </span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                width: '100%',
+                textAlign: 'center'
+            }}>
                 {label}
             </span>
         </div>
@@ -124,14 +133,35 @@ export function SwipeCard({ question, options, onAnswer, onDragStart }: SwipeCar
                     </p>
                 </div>
 
-                {/* Option grid: up / [left | right] / down */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <OptionPill dir="up" label={options.up} active={activeDir === 'up'} />
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                {/* Option grid: D-Pad Layout (cross) */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'auto auto auto',
+                    gridTemplateRows: 'auto auto auto',
+                    gap: '6px',
+                    width: '100%',
+                    justifyContent: 'center',
+                    justifyItems: 'center',
+                    alignItems: 'center'
+                }}>
+                    <div style={{ gridColumn: '2 / 3', gridRow: '1 / 2' }}>
+                        <OptionPill dir="up" label={options.up} active={activeDir === 'up'} />
+                    </div>
+
+                    <div style={{ gridColumn: '1 / 2', gridRow: '2 / 3' }}>
                         <OptionPill dir="left" label={options.left} active={activeDir === 'left'} />
+                    </div>
+
+                    {/* Center empty space could hold an icon or stay blank */}
+                    <div style={{ gridColumn: '2 / 3', gridRow: '2 / 3', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-border)', opacity: 0.5 }}></div>
+
+                    <div style={{ gridColumn: '3 / 4', gridRow: '2 / 3' }}>
                         <OptionPill dir="right" label={options.right} active={activeDir === 'right'} />
                     </div>
-                    <OptionPill dir="down" label={options.down} active={activeDir === 'down'} />
+
+                    <div style={{ gridColumn: '2 / 3', gridRow: '3 / 4' }}>
+                        <OptionPill dir="down" label={options.down} active={activeDir === 'down'} />
+                    </div>
                 </div>
             </motion.div>
         </div>

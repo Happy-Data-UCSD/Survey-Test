@@ -3,6 +3,7 @@ import { CheckCircle } from 'lucide-react'
 import { ProgressBar } from './components/ProgressBar'
 import { Companion3D } from './components/Companion3D'
 import { SwipeCard, Direction } from './components/SwipeCard'
+import { AnimatedBackground } from './components/AnimatedBackground'
 import { useGamifiedSound } from './hooks/useGamifiedSound'
 
 const SURVEY_QUESTIONS = [
@@ -62,6 +63,8 @@ export default function App() {
 
     return (
         <>
+            <AnimatedBackground isActive={reaction === 'happy'} />
+
             <ProgressBar
                 current={isDone ? SURVEY_QUESTIONS.length : currentIndex}
                 total={SURVEY_QUESTIONS.length}
