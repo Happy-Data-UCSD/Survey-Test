@@ -6,7 +6,7 @@ import { AllQuestionsSurvey } from './pages/AllQuestionsSurvey'
 
 export default function App() {
     return (
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
             <div style={{ position: 'relative', width: '100%', height: '100%', flex: 1 }}>
                 <Routes>
                     <Route path="/" element={<Navigate to="/survey" replace />} />
