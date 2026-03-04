@@ -9,11 +9,13 @@ import { MatrixGrid } from './components/GameModes/MatrixGrid'
 import { SpatialTriage } from './components/GameModes/SpatialTriage'
 import { NodeConnection } from './components/GameModes/NodeConnection'
 import { ConfidenceAllocator } from './components/GameModes/ConfidenceAllocator'
+import { MultipleChoice } from './components/GameModes/MultipleChoice'
 import { useGamifiedSound } from './hooks/useGamifiedSound'
 
 // Define the shape of our diverse survey questions
 export type SurveyQuestion =
     | { id: number; type: 'multiple-choice'; question: string; options: { up: string; down: string; left: string; right: string } }
+    | { id: number; type: 'vanilla-multiple-choice'; question: string; options: { up: string; down: string; left: string; right: string } }
     | { id: number; type: 'likert'; question: string; options: string[] }
     | { id: number; type: 'nps'; question: string; scale: number }
     | { id: number; type: 'open-ended'; question: string }
@@ -28,6 +30,12 @@ const SURVEY_QUESTIONS: SurveyQuestion[] = [
         type: 'multiple-choice',
         question: "How do you feel about our new branding?",
         options: { up: "Love it!", down: "Hate it!", left: "Needs work", right: "It's okay" }
+    },
+    {
+        id: 9,
+        type: 'vanilla-multiple-choice',
+        question: "Pick your preferred option:",
+        options: { up: "Option A", down: "Option B", left: "Option C", right: "Option D" }
     },
     {
         id: 2,
@@ -146,6 +154,15 @@ export default function App() {
                                             options={currentQuestion.options}
                                             onAnswer={handleAnswer}
                                             onDragStart={handleDragStart}
+                                        />
+                                    )
+                                case 'vanilla-multiple-choice':
+                                    return (
+                                        <MultipleChoice
+                                            question={currentQuestion.question}
+                                            options={currentQuestion.options}
+                                            onAnswer={handleAnswer}
+                                            onInteraction={playInteraction}
                                         />
                                     )
                                 case 'likert':

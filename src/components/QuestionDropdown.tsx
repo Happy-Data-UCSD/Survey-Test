@@ -3,6 +3,7 @@ import type { SurveyQuestion } from '../App'
 
 const TYPE_LABELS: Record<string, string> = {
     'multiple-choice': 'Swipe Card',
+    'vanilla-multiple-choice': 'Multiple Choice',
     likert: 'Likert',
     nps: 'NPS',
     'open-ended': 'Open Ended',
@@ -14,6 +15,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 const TYPE_SECTIONS: Record<string, string> = {
     'multiple-choice': 'Choice (pick one)',
+    'vanilla-multiple-choice': 'Choice (pick one)',
     'spatial-triage': 'Choice (pick one)',
     'node-connection': 'Choice (pick one)',
     'confidence-allocator': 'Distribution',
