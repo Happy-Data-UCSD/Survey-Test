@@ -7,7 +7,7 @@ export type Direction = 'up' | 'down' | 'left' | 'right' | null
 interface SwipeCardProps {
     question: string
     options: { up: string; down: string; left: string; right: string }
-    onAnswer: (answer: string) => void
+    onAnswer: (answer: Direction) => void
     onDragStart?: () => void
 }
 
