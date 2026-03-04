@@ -1,13 +1,11 @@
 import { useState, useCallback } from 'react'
 import { CheckCircle } from 'lucide-react'
-import { ProgressBar } from './components/ProgressBar'
-import { Companion3D } from './components/Companion3D'
+import { QuestionDropdown } from './components/QuestionDropdown'
 import { SwipeCard } from './components/GameModes/SwipeCard'
 import { LikertSlider } from './components/GameModes/LikertSlider'
 import { NPSStars } from './components/GameModes/NPSStars'
 import { OpenEndedBox } from './components/GameModes/OpenEndedBox'
 import { MatrixGrid } from './components/GameModes/MatrixGrid'
-import { AnimatedBackground } from './components/AnimatedBackground'
 import { useGamifiedSound } from './hooks/useGamifiedSound'
 
 // Define the shape of our diverse survey questions
@@ -54,7 +52,6 @@ const SURVEY_QUESTIONS: SurveyQuestion[] = [
 export default function App() {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [streak, setStreak] = useState(0)
-    const [reaction, setReaction] = useState<'idle' | 'happy'>('idle')
     const [isDone, setIsDone] = useState(false)
 
     const { playInteraction, playSuccess, playWhoosh } = useGamifiedSound()
@@ -68,10 +65,8 @@ export default function App() {
 
         playWhoosh()
         setStreak(s => s + 1)
-        setReaction('happy')
 
         setTimeout(() => {
-            setReaction('idle')
             if (currentIndex < SURVEY_QUESTIONS.length - 1) {
                 setCurrentIndex(i => i + 1)
             } else {
@@ -85,12 +80,13 @@ export default function App() {
 
     return (
         <>
-            <AnimatedBackground isActive={reaction === 'happy'} />
-
-            <ProgressBar
-                current={isDone ? SURVEY_QUESTIONS.length : currentIndex}
-                total={SURVEY_QUESTIONS.length}
-                streak={streak}
+            <QuestionDropdown
+                questions={SURVEY_QUESTIONS}
+                currentIndex={isDone ? SURVEY_QUESTIONS.length - 1 : currentIndex}
+                onSelect={(index) => {
+                    setCurrentIndex(index)
+                    setIsDone(false)
+                }}
             />
 
             <div style={{
@@ -102,9 +98,6 @@ export default function App() {
                 width: '100%',
                 paddingTop: '64px',
             }}>
-                <div style={{ marginBottom: '16px' }}>
-                    <Companion3D reaction={reaction} />
-                </div>
 
                 {!isDone ? (
                     <div key={currentQuestion.id}>
@@ -201,7 +194,6 @@ export default function App() {
                                 setCurrentIndex(0)
                                 setStreak(0)
                                 setIsDone(false)
-                                setReaction('idle')
                             }}
                         >
                             Start Over
