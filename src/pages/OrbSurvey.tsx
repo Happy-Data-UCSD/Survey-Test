@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { CheckCircle } from 'lucide-react'
 import { ProgressBar } from '../components/ProgressBar'
 import { Companion3D } from '../components/Companion3D'
-import { SwipeCard, Direction } from '../components/SwipeCard'
+import { SwipeCard, Direction } from '../components/GameModes/SwipeCard'
 import { AnimatedBackground } from '../components/AnimatedBackground'
 import { useGamifiedSound } from '../hooks/useGamifiedSound'
 

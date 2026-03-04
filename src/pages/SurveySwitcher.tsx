@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { AnimatedBackground } from '../components/AnimatedBackground'
-import { Zap, Swords } from 'lucide-react'
+import { Zap, Swords, ListChecks } from 'lucide-react'
 
 const cardStyle = {
     display: 'flex',
@@ -84,6 +84,26 @@ export function SurveySwitcher() {
                         </span>
                         <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
                             Drag to pick the winner
+                        </span>
+                    </Link>
+                    <Link
+                        to="/survey/all"
+                        style={cardStyle}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--color-text-muted)'
+                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)'
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = ''
+                            e.currentTarget.style.boxShadow = ''
+                        }}
+                    >
+                        <ListChecks size={32} color="var(--color-text-muted)" strokeWidth={2} />
+                        <span style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--color-text)' }}>
+                            All Questions
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+                            All question types with dropdown
                         </span>
                     </Link>
                 </div>

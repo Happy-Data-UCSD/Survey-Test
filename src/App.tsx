@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { SurveySwitcher } from './pages/SurveySwitcher'
 import { OrbSurveyPage } from './pages/OrbSurveyPage'
 import { ArenaSurvey } from './pages/ArenaSurvey'
+import { AllQuestionsSurvey } from './pages/AllQuestionsSurvey'
 
 export default function App() {
     return (
@@ -12,6 +13,7 @@ export default function App() {
                     <Route path="/survey" element={<SurveySwitcher />} />
                     <Route path="/survey/orb" element={<OrbSurveyPage />} />
                     <Route path="/survey/arena" element={<ArenaSurvey />} />
+                    <Route path="/survey/all" element={<AllQuestionsSurvey />} />
                 </Routes>
             </div>
         </BrowserRouter>

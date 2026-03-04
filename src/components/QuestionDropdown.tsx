@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import type { SurveyQuestion } from '../App'
+import type { SurveyQuestion } from '../types/survey'
 
 const TYPE_LABELS: Record<string, string> = {
     'multiple-choice': 'Swipe Card',
