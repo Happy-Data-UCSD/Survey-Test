@@ -6,6 +6,9 @@ import { LikertSlider } from './components/GameModes/LikertSlider'
 import { NPSStars } from './components/GameModes/NPSStars'
 import { OpenEndedBox } from './components/GameModes/OpenEndedBox'
 import { MatrixGrid } from './components/GameModes/MatrixGrid'
+import { SpatialTriage } from './components/GameModes/SpatialTriage'
+import { NodeConnection } from './components/GameModes/NodeConnection'
+import { ConfidenceAllocator } from './components/GameModes/ConfidenceAllocator'
 import { useGamifiedSound } from './hooks/useGamifiedSound'
 
 // Define the shape of our diverse survey questions
@@ -15,6 +18,9 @@ export type SurveyQuestion =
     | { id: number; type: 'nps'; question: string; scale: number }
     | { id: number; type: 'open-ended'; question: string }
     | { id: number; type: 'matrix'; question: string; rows: string[]; columns: string[] }
+    | { id: number; type: 'spatial-triage'; question: string; options: { topLeft: string; topRight: string; bottomLeft: string; bottomRight: string } }
+    | { id: number; type: 'node-connection'; question: string; options: string[] }
+    | { id: number; type: 'confidence-allocator'; question: string; options: string[] }
 
 const SURVEY_QUESTIONS: SurveyQuestion[] = [
     {
@@ -46,6 +52,29 @@ const SURVEY_QUESTIONS: SurveyQuestion[] = [
         id: 5,
         type: 'open-ended',
         question: "What is your biggest daily challenge?"
+    },
+    {
+        id: 6,
+        type: 'spatial-triage',
+        question: "How would you rate this feature?",
+        options: {
+            topLeft: "Love it",
+            topRight: "It's okay",
+            bottomLeft: "Needs work",
+            bottomRight: "Hate it"
+        }
+    },
+    {
+        id: 7,
+        type: 'node-connection',
+        question: "What best describes your experience?",
+        options: ["Excellent", "Good", "Average", "Needs improvement"]
+    },
+    {
+        id: 8,
+        type: 'confidence-allocator',
+        question: "Distribute your confidence: Which best explains the result?",
+        options: ["Hypothesis A", "Hypothesis B", "Hypothesis C"]
     }
 ]
 
@@ -100,7 +129,14 @@ export default function App() {
             }}>
 
                 {!isDone ? (
-                    <div key={currentQuestion.id}>
+                    <div
+                        key={currentQuestion.id}
+                        style={
+                            currentQuestion.type === 'spatial-triage'
+                                ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%', alignSelf: 'stretch' }
+                                : undefined
+                        }
+                    >
                         {(() => {
                             switch (currentQuestion.type) {
                                 case 'multiple-choice':
@@ -118,7 +154,6 @@ export default function App() {
                                             question={currentQuestion.question}
                                             options={currentQuestion.options}
                                             onAnswer={handleAnswer}
-                                            onInteraction={playInteraction}
                                         />
                                     )
                                 case 'nps':
@@ -145,6 +180,35 @@ export default function App() {
                                             rows={currentQuestion.rows}
                                             columns={currentQuestion.columns}
                                             onAnswer={(answers) => handleAnswer(JSON.stringify(answers))}
+                                            onInteraction={playInteraction}
+                                        />
+                                    )
+                                case 'spatial-triage':
+                                    return (
+                                        <div style={{ flex: 1, width: '100%', minHeight: 0, display: 'flex', alignSelf: 'stretch' }}>
+                                            <SpatialTriage
+                                                question={currentQuestion.question}
+                                                options={currentQuestion.options}
+                                                onAnswer={handleAnswer}
+                                                onDragStart={handleDragStart}
+                                            />
+                                        </div>
+                                    )
+                                case 'node-connection':
+                                    return (
+                                        <NodeConnection
+                                            question={currentQuestion.question}
+                                            options={currentQuestion.options}
+                                            onAnswer={handleAnswer}
+                                            onInteraction={playInteraction}
+                                        />
+                                    )
+                                case 'confidence-allocator':
+                                    return (
+                                        <ConfidenceAllocator
+                                            question={currentQuestion.question}
+                                            options={currentQuestion.options}
+                                            onAnswer={handleAnswer}
                                             onInteraction={playInteraction}
                                         />
                                     )

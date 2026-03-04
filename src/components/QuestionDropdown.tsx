@@ -2,12 +2,28 @@ import { ChevronDown } from 'lucide-react'
 import type { SurveyQuestion } from '../App'
 
 const TYPE_LABELS: Record<string, string> = {
-    'multiple-choice': 'Multiple Choice',
+    'multiple-choice': 'Swipe Card',
     likert: 'Likert',
     nps: 'NPS',
     'open-ended': 'Open Ended',
     matrix: 'Matrix',
+    'spatial-triage': 'Spatial Triage',
+    'node-connection': 'Node Connection',
+    'confidence-allocator': 'Confidence Allocator',
 }
+
+const TYPE_SECTIONS: Record<string, string> = {
+    'multiple-choice': 'Choice (pick one)',
+    'spatial-triage': 'Choice (pick one)',
+    'node-connection': 'Choice (pick one)',
+    'confidence-allocator': 'Distribution',
+    likert: 'Scale / Rating',
+    nps: 'Scale / Rating',
+    matrix: 'Matrix / Grid',
+    'open-ended': 'Open-ended',
+}
+
+const SECTION_ORDER = ['Choice (pick one)', 'Distribution', 'Scale / Rating', 'Matrix / Grid', 'Open-ended', 'Other']
 
 export function QuestionDropdown({
     questions,
@@ -50,11 +66,21 @@ export function QuestionDropdown({
                         fontFamily: 'inherit',
                     }}
                 >
-                    {questions.map((q, i) => (
-                        <option key={q.id} value={i}>
-                            {i + 1}. {TYPE_LABELS[q.type] ?? q.type}
-                        </option>
-                    ))}
+                    {SECTION_ORDER.map((section) => {
+                        const indices = questions
+                            .map((q, i) => ({ q, i }))
+                            .filter(({ q }) => (TYPE_SECTIONS[q.type] ?? 'Other') === section)
+                        if (indices.length === 0) return null
+                        return (
+                            <optgroup key={section} label={section}>
+                                {indices.map(({ q, i }) => (
+                                    <option key={q.id} value={i}>
+                                        {TYPE_LABELS[q.type] ?? q.type}
+                                    </option>
+                                ))}
+                            </optgroup>
+                        )
+                    })}
                 </select>
                 <ChevronDown
                     size={18}

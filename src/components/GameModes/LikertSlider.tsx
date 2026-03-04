@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, useMotionValue, useTransform } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 
@@ -6,21 +6,21 @@ interface LikertSliderProps {
     question: string
     options: string[]
     onAnswer: (answer: string) => void
-    onInteraction: () => void
+    onInteraction?: () => void
 }
 
 export function LikertSlider({ question, options, onAnswer, onInteraction }: LikertSliderProps) {
     const [committed, setCommitted] = useState(false)
     const [hovered, setHovered] = useState(false)
-    const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+    const middleIndex = Math.floor(options.length / 2)
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(middleIndex)
 
-    // Using useMotionValue directly for more manual control of the drag track
-    const x = useMotionValue(0)
-
-    // We assume track width is ~260px (300px container minus padding)
     const trackWidth = 260
     const thumbWidth = 40
     const dragLimit = trackWidth - thumbWidth
+    const middleX = (middleIndex / (options.length - 1)) * dragLimit
+
+    const x = useMotionValue(middleX)
 
     // Visuals tied to drag
     const backgroundFill = useTransform(x, [0, dragLimit], ['#E5E5E5', 'var(--color-primary)'])
@@ -36,15 +36,17 @@ export function LikertSlider({ question, options, onAnswer, onInteraction }: Lik
 
             if (rawIndex !== selectedIndex) {
                 setSelectedIndex(rawIndex)
-                onInteraction() // Play a soft tick sound when snapping across detents
+                onInteraction?.()
             }
         }
     })
 
-    const bind = useDrag(({ down, movement: [mx] }) => {
+    const startXRef = useRef(0)
+    const bind = useDrag(({ down, movement: [mx], first }) => {
         if (committed) return
 
-        let newX = x.get() + mx
+        if (first) startXRef.current = x.get()
+        let newX = startXRef.current + mx
         newX = Math.max(0, Math.min(newX, dragLimit))
 
         if (down) {
@@ -57,7 +59,7 @@ export function LikertSlider({ question, options, onAnswer, onInteraction }: Lik
 
             x.set(snapX)
             setSelectedIndex(snapIndex)
-            onInteraction()
+            onInteraction?.()
         }
     }, { filterTaps: true })
 
