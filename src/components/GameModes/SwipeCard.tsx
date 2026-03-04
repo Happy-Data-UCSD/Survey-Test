@@ -7,7 +7,7 @@ export type Direction = 'up' | 'down' | 'left' | 'right' | null
 interface SwipeCardProps {
     question: string
     options: { up: string; down: string; left: string; right: string }
-    onAnswer: (dir: Direction) => void
+    onAnswer: (answer: string) => void
     onDragStart?: () => void
 }
 
@@ -112,13 +112,14 @@ export function SwipeCard({ question, options, onAnswer, onDragStart }: SwipeCar
                 whileTap={{ cursor: 'grabbing' }}
             >
                 {/* Question */}
-                <div style={{ textAlign: 'center' }}>
+                <div style={{ textAlign: 'center', userSelect: 'none' }}>
                     <h2 style={{
                         fontSize: '1.3rem',
                         fontWeight: '800',
                         lineHeight: 1.35,
                         color: 'var(--color-text)',
                         marginBottom: '8px',
+                        userSelect: 'none',
                     }}>
                         {question}
                     </h2>
