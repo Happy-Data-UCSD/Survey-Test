@@ -98,7 +98,7 @@ export function OpenEndedBox({ question, onAnswer, onInteraction, selectedAnswer
                         transition: 'background 0.2s ease, border-bottom 0.2s ease'
                     }}
                 >
-                    Send Response
+                    Confirm
                 </motion.button>
             </motion.div>
         </div>

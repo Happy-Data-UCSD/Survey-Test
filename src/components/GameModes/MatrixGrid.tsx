@@ -161,7 +161,7 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
                         marginTop: '4px'
                     }}
                 >
-                    Submit Layout
+                    Confirm
                 </motion.button>
             </motion.div>
         </div>
