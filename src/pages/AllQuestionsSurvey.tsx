@@ -59,7 +59,7 @@ export function AllQuestionsSurvey() {
                 zIndex: 20,
             }}>
                 <Link
-                    to="/survey"
+                    to="/"
                     style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -213,7 +213,7 @@ export function AllQuestionsSurvey() {
                             </p>
                         </div>
                         <Link
-                            to="/survey"
+                            to="/"
                             className="btn-primary"
                             style={{ marginTop: '8px', width: '100%', textDecoration: 'none', textAlign: 'center', color: 'inherit' }}
                         >

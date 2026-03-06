@@ -9,6 +9,7 @@ interface SpatialTriageProps {
     options: { topLeft: string; topRight: string; bottomLeft: string; bottomRight: string }
     onAnswer: (answer: string) => void
     onDragStart?: () => void
+    selectedAnswer?: string
 }
 
 function getZoneFromMovement(dx: number, dy: number): Zone {
@@ -19,13 +20,14 @@ function getZoneFromMovement(dx: number, dy: number): Zone {
     return null
 }
 
-function ZoneLabel({ label, active }: { label: string; active: boolean }) {
+function ZoneLabel({ label, active, selected }: { label: string; active: boolean; selected: boolean }) {
+    const highlighted = active || selected
     return (
         <span
             style={{
                 fontSize: '1.15rem',
                 fontWeight: '800',
-                color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                color: highlighted ? 'var(--color-primary)' : 'var(--color-text-muted)',
                 transition: 'color 0.15s ease',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -38,8 +40,17 @@ function ZoneLabel({ label, active }: { label: string; active: boolean }) {
     )
 }
 
-export function SpatialTriage({ question, options, onAnswer, onDragStart }: SpatialTriageProps) {
+export function SpatialTriage({ question, options, onAnswer, onDragStart, selectedAnswer }: SpatialTriageProps) {
     const [activeZone, setActiveZone] = useState<Zone>(null)
+    
+    const getSelectedZone = (): Zone => {
+        if (!selectedAnswer) return null
+        for (const zone of ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const) {
+            if (options[zone] === selectedAnswer) return zone
+        }
+        return null
+    }
+    const selectedZone = getSelectedZone()
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -116,24 +127,29 @@ export function SpatialTriage({ question, options, onAnswer, onDragStart }: Spat
             }}
             className="animate-pop-in"
         >
-            {(['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const).map((zone) => (
-                <div
-                    key={zone}
-                    style={{
-                        display: 'flex',
-                        alignItems: zone.startsWith('bottom') ? 'flex-end' : 'flex-start',
-                        justifyContent: zone.endsWith('Right') ? 'flex-end' : 'flex-start',
-                        padding: '28px',
-                        background: activeZone === zone ? 'rgba(88, 204, 2, 0.12)' : 'rgba(0,0,0,0.02)',
-                        border: `3px solid ${activeZone === zone ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                        borderRightWidth: zone.endsWith('Right') ? '3px' : '2px',
-                        borderBottomWidth: zone.startsWith('bottom') ? '3px' : '2px',
-                        transition: 'all 0.15s ease',
-                    }}
-                >
-                    <ZoneLabel label={options[zone]} active={activeZone === zone} />
-                </div>
-            ))}
+            {(['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const).map((zone) => {
+                const isActive = activeZone === zone
+                const isSelected = selectedZone === zone
+                const highlighted = isActive || isSelected
+                return (
+                    <div
+                        key={zone}
+                        style={{
+                            display: 'flex',
+                            alignItems: zone.startsWith('bottom') ? 'flex-end' : 'flex-start',
+                            justifyContent: zone.endsWith('Right') ? 'flex-end' : 'flex-start',
+                            padding: '28px',
+                            background: highlighted ? 'rgba(100, 116, 139, 0.12)' : 'rgba(0,0,0,0.02)',
+                            border: `3px solid ${highlighted ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                            borderRightWidth: zone.endsWith('Right') ? '3px' : '2px',
+                            borderBottomWidth: zone.startsWith('bottom') ? '3px' : '2px',
+                            transition: 'all 0.15s ease',
+                        }}
+                    >
+                        <ZoneLabel label={options[zone]} active={isActive} selected={isSelected} />
+                    </div>
+                )
+            })}
 
             <div
                 style={{

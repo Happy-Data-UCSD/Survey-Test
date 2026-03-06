@@ -5,10 +5,11 @@ interface OpenEndedBoxProps {
     question: string
     onAnswer: (answer: string) => void
     onInteraction: () => void
+    selectedAnswer?: string
 }
 
-export function OpenEndedBox({ question, onAnswer, onInteraction }: OpenEndedBoxProps) {
-    const [text, setText] = useState("")
+export function OpenEndedBox({ question, onAnswer, onInteraction, selectedAnswer }: OpenEndedBoxProps) {
+    const [text, setText] = useState(selectedAnswer || "")
     const [committed, setCommitted] = useState(false)
     const [focused, setFocused] = useState(false)
 
@@ -52,7 +53,7 @@ export function OpenEndedBox({ question, onAnswer, onInteraction }: OpenEndedBox
                     background: '#F9F9F9',
                     borderRadius: '16px',
                     padding: '12px',
-                    border: focused ? '2px solid var(--color-info)' : '2px solid #E0E0E0',
+                    border: focused ? '2px solid var(--color-primary)' : '2px solid #E0E0E0',
                     transition: 'border 0.2s ease'
                 }}>
                     <textarea
@@ -88,9 +89,9 @@ export function OpenEndedBox({ question, onAnswer, onInteraction }: OpenEndedBox
                         fontWeight: '800',
                         fontSize: '0.9rem',
                         color: 'white',
-                        background: text.trim().length > 0 ? 'var(--color-info)' : 'var(--color-border-dark)',
+                        background: text.trim().length > 0 ? 'var(--color-primary)' : 'var(--color-border-dark)',
                         border: 'none',
-                        borderBottom: text.trim().length > 0 ? '4px solid #1493D1' : '4px solid #B0B0B0',
+                        borderBottom: text.trim().length > 0 ? '4px solid var(--color-primary-dark)' : '4px solid #B0B0B0',
                         cursor: text.trim().length > 0 ? 'pointer' : 'not-allowed',
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',

@@ -9,21 +9,23 @@ interface SwipeCardProps {
     options: { up: string; down: string; left: string; right: string }
     onAnswer: (answer: Direction) => void
     onDragStart?: () => void
+    selectedAnswer?: string
 }
 
 const ARROWS: Record<string, string> = { up: '↑', down: '↓', left: '←', right: '→' }
 
-function OptionPill({ dir, label, active }: { dir: string; label: string; active: boolean }) {
+function OptionPill({ dir, label, active, selected }: { dir: string; label: string; active: boolean; selected: boolean }) {
+    const highlighted = active || selected
     return (
         <div style={{
             width: '80px',
             height: '65px',
             padding: '6px 4px',
             borderRadius: '12px',
-            background: active ? 'var(--color-primary)' : '#F4F4F4',
-            border: `2px solid ${active ? 'var(--color-primary-dark)' : '#E0E0E0'}`,
-            borderBottom: `4px solid ${active ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
-            color: active ? 'white' : 'var(--color-text-muted)',
+            background: highlighted ? 'var(--color-primary)' : '#F4F4F4',
+            border: `2px solid ${highlighted ? 'var(--color-primary-dark)' : '#E0E0E0'}`,
+            borderBottom: `4px solid ${highlighted ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
+            color: highlighted ? 'white' : 'var(--color-text-muted)',
             fontWeight: '800',
             fontSize: '0.65rem',
             display: 'flex',
@@ -36,7 +38,7 @@ function OptionPill({ dir, label, active }: { dir: string; label: string; active
             userSelect: 'none',
             overflow: 'hidden',
         }}>
-            <span style={{ fontSize: '1.2rem', opacity: active ? 1 : 0.6, lineHeight: 1 }}>
+            <span style={{ fontSize: '1.2rem', opacity: highlighted ? 1 : 0.6, lineHeight: 1 }}>
                 {ARROWS[dir]}
             </span>
             <span style={{
@@ -52,7 +54,7 @@ function OptionPill({ dir, label, active }: { dir: string; label: string; active
     )
 }
 
-export function SwipeCard({ question, options, onAnswer, onDragStart }: SwipeCardProps) {
+export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAnswer }: SwipeCardProps) {
     const [activeDir, setActiveDir] = useState<Direction>(null)
 
     const mx = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
@@ -146,22 +148,22 @@ export function SwipeCard({ question, options, onAnswer, onDragStart }: SwipeCar
                     alignItems: 'center'
                 }}>
                     <div style={{ gridColumn: '2 / 3', gridRow: '1 / 2' }}>
-                        <OptionPill dir="up" label={options.up} active={activeDir === 'up'} />
+                        <OptionPill dir="up" label={options.up} active={activeDir === 'up'} selected={selectedAnswer === 'up'} />
                     </div>
 
                     <div style={{ gridColumn: '1 / 2', gridRow: '2 / 3' }}>
-                        <OptionPill dir="left" label={options.left} active={activeDir === 'left'} />
+                        <OptionPill dir="left" label={options.left} active={activeDir === 'left'} selected={selectedAnswer === 'left'} />
                     </div>
 
                     {/* Center empty space could hold an icon or stay blank */}
                     <div style={{ gridColumn: '2 / 3', gridRow: '2 / 3', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-border)', opacity: 0.5 }}></div>
 
                     <div style={{ gridColumn: '3 / 4', gridRow: '2 / 3' }}>
-                        <OptionPill dir="right" label={options.right} active={activeDir === 'right'} />
+                        <OptionPill dir="right" label={options.right} active={activeDir === 'right'} selected={selectedAnswer === 'right'} />
                     </div>
 
                     <div style={{ gridColumn: '2 / 3', gridRow: '3 / 4' }}>
-                        <OptionPill dir="down" label={options.down} active={activeDir === 'down'} />
+                        <OptionPill dir="down" label={options.down} active={activeDir === 'down'} selected={selectedAnswer === 'down'} />
                     </div>
                 </div>
             </motion.div>

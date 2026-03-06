@@ -6,7 +6,7 @@ export function OrbSurveyPage() {
     return (
         <>
             <Link
-                to="/survey"
+                to="/"
                 style={{
                     position: 'absolute',
                     top: 20,

@@ -8,6 +8,7 @@ interface NodeConnectionProps {
     options: string[]
     onAnswer: (answer: string) => void
     onInteraction?: () => void
+    selectedAnswer?: string
 }
 
 function getPointerCoords(event: PointerEvent | TouchEvent | MouseEvent): { x: number; y: number } {
@@ -31,13 +32,15 @@ function placeOnCircle(count: number, radius: number, cx: number, cy: number) {
 const CONNECTION_ANIM_DURATION = 400
 const HINT_ANIM_DURATION = 2500
 
-export function NodeConnection({ question, options, onAnswer, onInteraction }: NodeConnectionProps) {
+export function NodeConnection({ question, options, onAnswer, onInteraction, selectedAnswer }: NodeConnectionProps) {
     const [dragEnd, setDragEnd] = useState<{ x: number; y: number } | null>(null)
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
     const [connectingIndex, setConnectingIndex] = useState<number | null>(null)
     const [showHint, setShowHint] = useState(true)
     const [releaseMissed, setReleaseMissed] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
+    
+    const selectedIndex = selectedAnswer ? options.indexOf(selectedAnswer) : -1
 
     const size = 400
     const cx = size / 2
@@ -219,57 +222,60 @@ export function NodeConnection({ question, options, onAnswer, onInteraction }: N
                     })()}
                 </svg>
 
-                {options.map((opt, i) => (
-                    <motion.div
-                        key={i}
-                        onClick={() => {
-                            if (isDisabled) return
-                            onInteraction?.()
-                            setShowHint(false)
-                            confirmSelection(i)
-                        }}
-                        style={{
-                            position: 'absolute',
-                            left: positions[i].x - nodeWidth / 2,
-                            top: positions[i].y - nodeHeight / 2,
-                            width: nodeWidth,
-                            height: nodeHeight,
-                            borderRadius: 9999,
-                            background: connectingIndex === i ? 'var(--color-primary)' : hoveredIndex === i ? 'var(--color-primary)' : 'white',
-                            border: `3px solid ${connectingIndex === i || hoveredIndex === i ? 'var(--color-primary-dark)' : 'var(--color-border)'}`,
-                            borderBottom: `4px solid ${connectingIndex === i || hoveredIndex === i ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: 8,
-                            cursor: isDisabled ? 'default' : 'pointer',
-                            transition: 'all 0.15s ease',
-                            boxSizing: 'border-box',
-                            zIndex: 1,
-                        }}
-                        animate={connectingIndex === i ? { scale: [1, 1.08, 1] } : {}}
-                        transition={{ duration: CONNECTION_ANIM_DURATION / 1000 }}
-                    >
-                        <span
-                            title={opt}
-                            style={{
-                                fontSize: '0.8rem',
-                                fontWeight: '800',
-                                color: connectingIndex === i || hoveredIndex === i ? 'white' : 'var(--color-text)',
-                                textAlign: 'center',
-                                lineHeight: 1.2,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 4,
-                                WebkitBoxOrient: 'vertical',
-                                padding: '0 2px',
+                {options.map((opt, i) => {
+                    const isHighlighted = connectingIndex === i || hoveredIndex === i || selectedIndex === i
+                    return (
+                        <motion.div
+                            key={i}
+                            onClick={() => {
+                                if (isDisabled) return
+                                onInteraction?.()
+                                setShowHint(false)
+                                confirmSelection(i)
                             }}
+                            style={{
+                                position: 'absolute',
+                                left: positions[i].x - nodeWidth / 2,
+                                top: positions[i].y - nodeHeight / 2,
+                                width: nodeWidth,
+                                height: nodeHeight,
+                                borderRadius: 9999,
+                                background: isHighlighted ? 'var(--color-primary)' : 'white',
+                                border: `3px solid ${isHighlighted ? 'var(--color-primary-dark)' : 'var(--color-border)'}`,
+                                borderBottom: `4px solid ${isHighlighted ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: 8,
+                                cursor: isDisabled ? 'default' : 'pointer',
+                                transition: 'all 0.15s ease',
+                                boxSizing: 'border-box',
+                                zIndex: 1,
+                            }}
+                            animate={connectingIndex === i ? { scale: [1, 1.08, 1] } : {}}
+                            transition={{ duration: CONNECTION_ANIM_DURATION / 1000 }}
                         >
-                            {opt}
-                        </span>
-                    </motion.div>
-                ))}
+                            <span
+                                title={opt}
+                                style={{
+                                    fontSize: '0.8rem',
+                                    fontWeight: '800',
+                                    color: isHighlighted ? 'white' : 'var(--color-text)',
+                                    textAlign: 'center',
+                                    lineHeight: 1.2,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 4,
+                                    WebkitBoxOrient: 'vertical',
+                                    padding: '0 2px',
+                                }}
+                            >
+                                {opt}
+                            </span>
+                        </motion.div>
+                    )
+                })}
 
                 {connectingIndex === null && (
                     <motion.div
@@ -282,7 +288,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction }: N
                             width: centerNodeSize,
                             height: centerNodeSize,
                             borderRadius: '50%',
-                            background: 'rgba(88, 204, 2, 0.15)',
+                            background: 'rgba(100, 116, 139, 0.15)',
                             border: '3px solid var(--color-primary)',
                             display: 'flex',
                             alignItems: 'center',
@@ -297,9 +303,9 @@ export function NodeConnection({ question, options, onAnswer, onInteraction }: N
                             !dragEnd
                                 ? {
                                       boxShadow: [
-                                          '0 0 0 0 rgba(88, 204, 2, 0)',
-                                          '0 0 0 6px rgba(88, 204, 2, 0.2)',
-                                          '0 0 0 0 rgba(88, 204, 2, 0)',
+                                          '0 0 0 0 rgba(100, 116, 139, 0)',
+                                          '0 0 0 6px rgba(100, 116, 139, 0.2)',
+                                          '0 0 0 0 rgba(100, 116, 139, 0)',
                                       ],
                                   }
                                 : {}
@@ -318,7 +324,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction }: N
                             exit={{ opacity: 0 }}
                             style={{
                                 position: 'absolute',
-                                bottom: -24,
+                                bottom: -54,
                                 left: 0,
                                 right: 0,
                                 fontSize: '0.8rem',
@@ -339,7 +345,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction }: N
                             exit={{ opacity: 0 }}
                             style={{
                                 position: 'absolute',
-                                bottom: -24,
+                                bottom: -54,
                                 left: 0,
                                 right: 0,
                                 fontSize: '0.8rem',
@@ -357,7 +363,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction }: N
                 <motion.p
                     style={{
                         position: 'absolute',
-                        bottom: -44,
+                        bottom: -74,
                         left: 0,
                         right: 0,
                         fontSize: '0.8rem',

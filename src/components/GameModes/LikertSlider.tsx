@@ -7,24 +7,34 @@ interface LikertSliderProps {
     options: string[]
     onAnswer: (answer: string) => void
     onInteraction?: () => void
+    selectedAnswer?: string
 }
 
-export function LikertSlider({ question, options, onAnswer, onInteraction }: LikertSliderProps) {
+export function LikertSlider({ question, options, onAnswer, onInteraction, selectedAnswer }: LikertSliderProps) {
     const [committed, setCommitted] = useState(false)
     const [hovered, setHovered] = useState(false)
     const middleIndex = Math.floor(options.length / 2)
-    const [selectedIndex, setSelectedIndex] = useState<number | null>(middleIndex)
+    
+    const getInitialIndex = () => {
+        if (selectedAnswer) {
+            const idx = options.indexOf(selectedAnswer)
+            return idx >= 0 ? idx : middleIndex
+        }
+        return middleIndex
+    }
+    const initialIndex = getInitialIndex()
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(initialIndex)
 
     const trackWidth = 260
     const thumbWidth = 40
     const dragLimit = trackWidth - thumbWidth
-    const middleX = (middleIndex / (options.length - 1)) * dragLimit
+    const initialX = (initialIndex / (options.length - 1)) * dragLimit
 
-    const x = useMotionValue(middleX)
+    const x = useMotionValue(initialX)
 
     // Visuals tied to drag
     const backgroundFill = useTransform(x, [0, dragLimit], ['#E5E5E5', 'var(--color-primary)'])
-    const fillWidth = useTransform(x, (xVal) => `${xVal + thumbWidth / 2}px`)
+    const fillWidth = useTransform(x, (xVal) => `${xVal}px`)
 
     // Determine the active index based on the x position
     // Since there are N options, we split the dragLimit into (N-1) segments
@@ -109,12 +119,48 @@ export function LikertSlider({ question, options, onAnswer, onInteraction }: Lik
                 </div>
 
                 {/* Slider Track */}
-                <div style={{ position: 'relative', height: '40px', display: 'flex', alignItems: 'center' }}>
+                <div style={{ 
+                    position: 'relative', 
+                    height: '56px', 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    paddingLeft: `${thumbWidth / 2}px`,
+                    paddingRight: `${thumbWidth / 2}px`,
+                }}>
+                    {/* Tick Marks - on top */}
+                    {options.map((_, index) => {
+                        const tickX = (index / (options.length - 1)) * dragLimit
+                        return (
+                            <div
+                                key={index}
+                                style={{
+                                    position: 'absolute',
+                                    left: `${tickX + thumbWidth / 2}px`,
+                                    top: '0px',
+                                    transform: 'translateX(-50%)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <div style={{
+                                    width: '2px',
+                                    height: '8px',
+                                    backgroundColor: selectedIndex === index ? 'var(--color-primary)' : '#C0C0C0',
+                                    borderRadius: '1px',
+                                    transition: 'background-color 0.2s ease',
+                                }} />
+                            </div>
+                        )
+                    })}
+
                     {/* Background Track */}
-                    <motion.div style={{
+                    <div style={{
                         position: 'absolute',
-                        left: 0,
-                        right: 0,
+                        left: `${thumbWidth / 2}px`,
+                        right: `${thumbWidth / 2}px`,
+                        top: '50%',
+                        marginTop: '-7px',
                         height: '14px',
                         borderRadius: '7px',
                         backgroundColor: '#F0F0F0',
@@ -123,19 +169,26 @@ export function LikertSlider({ question, options, onAnswer, onInteraction }: Lik
 
                     {/* Colored Active Fill */}
                     <motion.div style={{
-                        position: 'absolute',
-                        left: 0,
                         height: '14px',
                         borderRadius: '7px',
+                        position: 'absolute',
+                        left: `${thumbWidth / 2}px`,
+                        top: '50%',
+                        marginTop: '-7px',
                         backgroundColor: backgroundFill,
                         width: fillWidth,
                     }} />
 
-                    {/* Draggable Thumb */}
+                    {/* Draggable Thumb - centered on track */}
                     <motion.div
                         {...(bind() as any)}
+                        tabIndex={0}
                         style={{
                             x,
+                            position: 'absolute',
+                            left: 0,
+                            top: '50%',
+                            marginTop: `-${thumbWidth / 2}px`,
                             width: `${thumbWidth}px`,
                             height: `${thumbWidth}px`,
                             borderRadius: '50%',
@@ -143,13 +196,40 @@ export function LikertSlider({ question, options, onAnswer, onInteraction }: Lik
                             border: '3px solid',
                             borderColor: backgroundFill,
                             boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                            position: 'absolute',
                             cursor: 'grab',
                             touchAction: 'none'
                         }}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95, cursor: 'grabbing' }}
                     />
+                </div>
+
+                {/* Labels for first and last options */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginTop: '-8px',
+                    paddingLeft: '4px',
+                    paddingRight: '4px',
+                }}>
+                    <span style={{
+                        fontSize: '0.6rem',
+                        fontWeight: '600',
+                        color: 'var(--color-text-muted)',
+                        maxWidth: '80px',
+                        textAlign: 'left',
+                    }}>
+                        {options[0]}
+                    </span>
+                    <span style={{
+                        fontSize: '0.6rem',
+                        fontWeight: '600',
+                        color: 'var(--color-text-muted)',
+                        maxWidth: '80px',
+                        textAlign: 'right',
+                    }}>
+                        {options[options.length - 1]}
+                    </span>
                 </div>
 
                 {/* Submit button specifically for confirming the slider */}

@@ -7,11 +7,21 @@ interface MatrixGridProps {
     columns: string[]
     onAnswer: (answers: Record<string, string>) => void
     onInteraction: () => void
+    selectedAnswer?: string
 }
 
-export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction }: MatrixGridProps) {
-    // State to track which column is selected for each row
-    const [selections, setSelections] = useState<Record<string, string>>({})
+export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, selectedAnswer }: MatrixGridProps) {
+    const parseInitialSelections = (): Record<string, string> => {
+        if (selectedAnswer) {
+            try {
+                return JSON.parse(selectedAnswer)
+            } catch {
+                return {}
+            }
+        }
+        return {}
+    }
+    const [selections, setSelections] = useState<Record<string, string>>(parseInitialSelections)
     const [committed, setCommitted] = useState(false)
 
     const handleSelect = (row: string, col: string) => {
@@ -36,36 +46,38 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction }:
                     borderRadius: '24px',
                     border: '2px solid var(--color-border)',
                     borderBottom: '4px solid var(--color-border-dark)',
-                    padding: '24px',
+                    padding: '16px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '20px',
+                    gap: '16px',
                     opacity: committed ? 0 : 1,
                 }}
             >
                 <h2 style={{
-                    fontSize: '1.2rem',
+                    fontSize: '1.1rem',
                     fontWeight: '800',
-                    lineHeight: 1.35,
+                    lineHeight: 1.3,
                     color: 'var(--color-text)',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    marginBottom: '-4px'
                 }}>
                     {question}
                 </h2>
 
                 {/* Matrix Grid Representation */}
                 <div style={{ width: '100%', overflowX: 'auto' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {/* Header Row (Columns) */}
-                        <div style={{ display: 'flex', paddingLeft: '100px', gap: '8px' }}>
+                        <div style={{ display: 'flex', paddingLeft: '92px', gap: '8px' }}>
                             {columns.map(col => (
                                 <div key={col} style={{
                                     flex: 1,
                                     textAlign: 'center',
-                                    fontSize: '0.6rem',
+                                    fontSize: '0.55rem',
                                     fontWeight: '800',
                                     color: 'var(--color-text-muted)',
-                                    textTransform: 'uppercase'
+                                    textTransform: 'uppercase',
+                                    lineHeight: 1.1
                                 }}>
                                     {col}
                                 </div>
@@ -78,15 +90,16 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction }:
                                 display: 'flex',
                                 alignItems: 'center',
                                 background: rIdx % 2 === 0 ? '#F9F9F9' : 'transparent',
-                                padding: '8px',
+                                padding: '4px 8px',
                                 borderRadius: '12px'
                             }}>
                                 {/* Row Label */}
                                 <div style={{
-                                    width: '92px',
-                                    fontSize: '0.8rem',
+                                    width: '84px',
+                                    fontSize: '0.75rem',
                                     fontWeight: '700',
-                                    color: 'var(--color-text)'
+                                    color: 'var(--color-text)',
+                                    lineHeight: 1.1
                                 }}>
                                     {row}
                                 </div>
@@ -103,7 +116,7 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction }:
                                                 whileTap={{ scale: 0.9 }}
                                                 style={{
                                                     flex: 1,
-                                                    height: '28px',
+                                                    height: '24px',
                                                     borderRadius: '8px',
                                                     background: isSelected ? 'var(--color-primary)' : 'white',
                                                     border: isSelected ? '2px solid var(--color-primary-dark)' : '2px solid #E0E0E0',
@@ -111,7 +124,8 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction }:
                                                     display: 'flex',
                                                     justifyContent: 'center',
                                                     alignItems: 'center',
-                                                    transition: 'all 0.15s ease'
+                                                    transition: 'all 0.15s ease',
+                                                    padding: 0
                                                 }}
                                             >
                                                 {/* Inner dot for radio feel */}
@@ -132,7 +146,7 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction }:
                     whileHover={isComplete ? { scale: 1.02 } : {}}
                     whileTap={isComplete ? { scale: 0.98 } : {}}
                     style={{
-                        padding: '14px',
+                        padding: '12px',
                         borderRadius: '16px',
                         fontWeight: '800',
                         fontSize: '0.9rem',
@@ -143,7 +157,8 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction }:
                         cursor: isComplete ? 'pointer' : 'not-allowed',
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
-                        transition: 'all 0.2s ease'
+                        transition: 'all 0.2s ease',
+                        marginTop: '4px'
                     }}
                 >
                     Submit Layout

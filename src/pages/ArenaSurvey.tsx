@@ -19,7 +19,7 @@ export function ArenaSurvey() {
                 zIndex: 20,
             }}>
                 <Link
-                    to="/survey"
+                    to="/"
                     style={{
                         display: 'flex',
                         alignItems: 'center',

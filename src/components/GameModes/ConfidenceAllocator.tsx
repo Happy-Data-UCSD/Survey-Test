@@ -6,6 +6,7 @@ interface ConfidenceAllocatorProps {
     options: string[]
     onAnswer: (answer: string) => void
     onInteraction?: () => void
+    selectedAnswer?: string
 }
 
 function equalSplit(n: number): number[] {
@@ -18,8 +19,19 @@ function equalSplit(n: number): number[] {
 
 const roundTo10 = (v: number) => Math.round(Math.max(0, Math.min(100, v)) / 10) * 10
 
-export function ConfidenceAllocator({ question, options, onAnswer, onInteraction }: ConfidenceAllocatorProps) {
-    const [allocations, setAllocations] = useState<number[]>(() => equalSplit(options.length))
+export function ConfidenceAllocator({ question, options, onAnswer, onInteraction, selectedAnswer }: ConfidenceAllocatorProps) {
+    const parseInitialAllocations = (): number[] => {
+        if (selectedAnswer) {
+            try {
+                const record: Record<string, number> = JSON.parse(selectedAnswer)
+                return options.map(opt => record[opt] ?? 0)
+            } catch {
+                return equalSplit(options.length)
+            }
+        }
+        return equalSplit(options.length)
+    }
+    const [allocations, setAllocations] = useState<number[]>(parseInitialAllocations)
     const [committed, setCommitted] = useState(false)
 
     const total = useMemo(() => allocations.reduce((a, b) => a + b, 0), [allocations])
