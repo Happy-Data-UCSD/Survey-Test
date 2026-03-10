@@ -26,6 +26,8 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.VITE_GOOGLE_SHEETS_WEB_APP_URL }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
