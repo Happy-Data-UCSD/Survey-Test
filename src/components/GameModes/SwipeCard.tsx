@@ -7,7 +7,7 @@ export type Direction = 'up' | 'down' | 'left' | 'right' | null
 interface SwipeCardProps {
     question: string
     options: { up: string; down: string; left: string; right: string }
-    onAnswer: (answer: Direction) => void
+    onAnswer: (answer: string) => void
     onDragStart?: () => void
     selectedAnswer?: string
 }
@@ -80,7 +80,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                 mx.set(finalDir === 'left' ? -500 : finalDir === 'right' ? 500 : 0)
                 my.set(finalDir === 'up' ? -500 : finalDir === 'down' ? 500 : 0)
                 setTimeout(() => {
-                    onAnswer(finalDir)
+                    onAnswer(options[finalDir])
                     mx.set(0, false)
                     my.set(0, false)
                     setActiveDir(null)
@@ -148,22 +148,22 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                     alignItems: 'center'
                 }}>
                     <div style={{ gridColumn: '2 / 3', gridRow: '1 / 2' }}>
-                        <OptionPill dir="up" label={options.up} active={activeDir === 'up'} selected={selectedAnswer === 'up'} />
+                        <OptionPill dir="up" label={options.up} active={activeDir === 'up'} selected={selectedAnswer === options.up} />
                     </div>
 
                     <div style={{ gridColumn: '1 / 2', gridRow: '2 / 3' }}>
-                        <OptionPill dir="left" label={options.left} active={activeDir === 'left'} selected={selectedAnswer === 'left'} />
+                        <OptionPill dir="left" label={options.left} active={activeDir === 'left'} selected={selectedAnswer === options.left} />
                     </div>
 
                     {/* Center empty space could hold an icon or stay blank */}
                     <div style={{ gridColumn: '2 / 3', gridRow: '2 / 3', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-border)', opacity: 0.5 }}></div>
 
                     <div style={{ gridColumn: '3 / 4', gridRow: '2 / 3' }}>
-                        <OptionPill dir="right" label={options.right} active={activeDir === 'right'} selected={selectedAnswer === 'right'} />
+                        <OptionPill dir="right" label={options.right} active={activeDir === 'right'} selected={selectedAnswer === options.right} />
                     </div>
 
                     <div style={{ gridColumn: '2 / 3', gridRow: '3 / 4' }}>
-                        <OptionPill dir="down" label={options.down} active={activeDir === 'down'} selected={selectedAnswer === 'down'} />
+                        <OptionPill dir="down" label={options.down} active={activeDir === 'down'} selected={selectedAnswer === options.down} />
                     </div>
                 </div>
             </motion.div>

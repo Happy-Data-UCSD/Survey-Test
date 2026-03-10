@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { CheckCircle } from 'lucide-react'
 import { ProgressBar } from '../components/ProgressBar'
 import { Companion3D } from '../components/Companion3D'
-import { SwipeCard, Direction } from '../components/GameModes/SwipeCard'
+import { SwipeCard } from '../components/GameModes/SwipeCard'
 import { AnimatedBackground } from '../components/AnimatedBackground'
 import { useGamifiedSound } from '../hooks/useGamifiedSound'
 
@@ -41,8 +41,7 @@ export function OrbSurvey() {
         playInteraction()
     }, [playInteraction])
 
-    const handleAnswer = useCallback((dir: Direction) => {
-        if (!dir) return
+    const handleAnswer = useCallback((_answer: string) => {
 
         playWhoosh()
         setStreak(s => s + 1)

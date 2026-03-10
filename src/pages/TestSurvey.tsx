@@ -112,12 +112,25 @@ export function TestSurvey() {
 
     const handleSubmit = useCallback(() => {
         setIsSubmitting(true)
-        setTimeout(() => {
-            console.log('Survey submitted:', answers)
-            setIsSubmitting(false)
-            setIsOnSubmitPage(false)
-            setIsDone(true)
-        }, 1000)
+        const url = import.meta.env.VITE_GOOGLE_SHEETS_WEB_APP_URL
+        if (url) {
+            fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(answers),
+            }).finally(() => {
+                setIsSubmitting(false)
+                setIsOnSubmitPage(false)
+                setIsDone(true)
+            })
+        } else {
+            setTimeout(() => {
+                setIsSubmitting(false)
+                setIsOnSubmitPage(false)
+                setIsDone(true)
+            }, 1000)
+        }
     }, [answers])
 
     const goBackFromSubmit = useCallback(() => {
