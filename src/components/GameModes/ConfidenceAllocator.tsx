@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { NB } from '../../styles/neobrutal'
 
 interface ConfidenceAllocatorProps {
     question: string
@@ -7,6 +8,7 @@ interface ConfidenceAllocatorProps {
     onAnswer: (answer: string) => void
     onInteraction?: () => void
     selectedAnswer?: string
+    neoBrutal?: boolean
 }
 
 function equalSplit(n: number): number[] {
@@ -19,7 +21,7 @@ function equalSplit(n: number): number[] {
 
 const roundTo10 = (v: number) => Math.round(Math.max(0, Math.min(100, v)) / 10) * 10
 
-export function ConfidenceAllocator({ question, options, onAnswer, onInteraction, selectedAnswer }: ConfidenceAllocatorProps) {
+export function ConfidenceAllocator({ question, options, onAnswer, onInteraction, selectedAnswer, neoBrutal }: ConfidenceAllocatorProps) {
     const parseInitialAllocations = (): number[] => {
         if (selectedAnswer) {
             try {
@@ -54,14 +56,26 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
         onAnswer(JSON.stringify(record))
     }
 
+    const shell = neoBrutal
+        ? {
+            background: NB.cardBg,
+            borderRadius: '20px',
+            border: NB.border,
+            boxShadow: NB.shadow,
+            fontFamily: NB.font,
+        }
+        : {
+            background: 'white',
+            borderRadius: '20px',
+            border: '2px solid var(--color-border)',
+            borderBottom: '4px solid var(--color-border-dark)',
+        }
+
     return (
         <div style={{ position: 'relative', width: '320px' }} className="animate-pop-in">
             <motion.div
                 style={{
-                    background: 'white',
-                    borderRadius: '20px',
-                    border: '2px solid var(--color-border)',
-                    borderBottom: '4px solid var(--color-border-dark)',
+                    ...shell,
                     padding: '28px 20px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -74,15 +88,15 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                         fontSize: '1.25rem',
                         fontWeight: '800',
                         lineHeight: 1.35,
-                        color: 'var(--color-text)',
+                        color: neoBrutal ? NB.black : 'var(--color-text)',
                         marginBottom: '8px',
                     }}>
                         {question}
                     </h2>
                     <p style={{
                         fontSize: '0.65rem',
-                        fontWeight: '700',
-                        color: 'var(--color-text-muted)',
+                        fontWeight: '800',
+                        color: neoBrutal ? NB.black : 'var(--color-text-muted)',
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
                         minHeight: '12px',
@@ -98,14 +112,14 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                                 <span style={{
                                     fontSize: '0.9rem',
                                     fontWeight: '700',
-                                    color: 'var(--color-text)',
+                                    color: neoBrutal ? NB.black : 'var(--color-text)',
                                 }}>
                                     {opt}
                                 </span>
                                 <span style={{
                                     fontSize: '0.85rem',
                                     fontWeight: '800',
-                                    color: 'var(--color-primary)',
+                                    color: neoBrutal ? NB.green : 'var(--color-primary)',
                                     minWidth: '36px',
                                     textAlign: 'right',
                                 }}>
@@ -121,7 +135,7 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                                 onChange={(e) => handleChange(i, Number(e.target.value))}
                                 style={{
                                     width: '100%',
-                                    accentColor: 'var(--color-primary)',
+                                    accentColor: neoBrutal ? NB.green : 'var(--color-primary)',
                                     cursor: 'pointer',
                                 }}
                             />
@@ -138,7 +152,7 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                     <span style={{
                         fontSize: '0.75rem',
                         fontWeight: '700',
-                        color: isComplete ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                        color: isComplete ? (neoBrutal ? NB.black : 'var(--color-primary)') : (neoBrutal ? 'rgba(0,0,0,0.5)' : 'var(--color-text-muted)'),
                     }}>
                         Total: {total}%
                     </span>
@@ -147,7 +161,20 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                 <button
                     onClick={handleSubmit}
                     disabled={!isComplete}
-                    style={{
+                    style={neoBrutal ? {
+                        padding: '12px',
+                        borderRadius: '14px',
+                        fontFamily: NB.font,
+                        fontWeight: 900,
+                        fontSize: '0.9rem',
+                        color: NB.black,
+                        background: isComplete ? NB.yellow : '#D0D0D0',
+                        border: NB.border,
+                        boxShadow: isComplete ? NB.shadow : 'none',
+                        cursor: isComplete ? 'pointer' : 'not-allowed',
+                        textTransform: 'uppercase',
+                        transition: 'all 0.1s ease',
+                    } : {
                         padding: '12px',
                         borderRadius: '12px',
                         fontWeight: '800',

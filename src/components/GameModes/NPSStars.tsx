@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { NB } from '../../styles/neobrutal'
 
 interface NPSStarsProps {
     question: string
@@ -7,9 +8,10 @@ interface NPSStarsProps {
     onAnswer: (answer: string) => void
     onInteraction: () => void
     selectedAnswer?: string
+    neoBrutal?: boolean
 }
 
-export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAnswer }: NPSStarsProps) {
+export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAnswer, neoBrutal }: NPSStarsProps) {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null)
     const initialSelection = selectedAnswer ? parseInt(selectedAnswer, 10) : null
     const [selectedIndex, setSelectedIndex] = useState<number | null>(initialSelection)
@@ -35,14 +37,26 @@ export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAns
         }, 500)
     }
 
+    const shell = neoBrutal
+        ? {
+            background: NB.cardBg,
+            borderRadius: '20px',
+            border: NB.border,
+            boxShadow: NB.shadow,
+            fontFamily: NB.font,
+        }
+        : {
+            background: 'white',
+            borderRadius: '20px',
+            border: '2px solid var(--color-border)',
+            borderBottom: '4px solid var(--color-border-dark)',
+        }
+
     return (
         <div style={{ position: 'relative', width: isLargeScale ? '100%' : '300px', maxWidth: isLargeScale ? '420px' : '300px' }} className="animate-pop-in">
             <motion.div
                 style={{
-                    background: 'white',
-                    borderRadius: '20px',
-                    border: '2px solid var(--color-border)',
-                    borderBottom: '4px solid var(--color-border-dark)',
+                    ...shell,
                     padding: '28px 20px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -56,15 +70,15 @@ export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAns
                         fontSize: '1.2rem',
                         fontWeight: '800',
                         lineHeight: 1.35,
-                        color: 'var(--color-text)',
+                        color: neoBrutal ? NB.black : 'var(--color-text)',
                         marginBottom: '8px',
                     }}>
                         {question}
                     </h2>
                     <p style={{
                         fontSize: '0.65rem',
-                        fontWeight: '700',
-                        color: 'var(--color-text-muted)',
+                        fontWeight: '800',
+                        color: neoBrutal ? NB.black : 'var(--color-text-muted)',
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
                     }}>
@@ -73,12 +87,24 @@ export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAns
                 </div>
 
                 {/* Stars / Numbers Container */}
-                <div style={{
-                    display: 'flex',
-                    flexWrap: 'nowrap',
-                    justifyContent: isLargeScale ? 'space-between' : 'center',
-                    gap: isLargeScale ? '4px' : '10px',
-                }}>
+                <div style={
+                    neoBrutal && isLargeScale
+                        ? {
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(11, minmax(0, 1fr))',
+                            gap: '3px',
+                            width: '100%',
+                            paddingLeft: '2px',
+                            paddingRight: '2px',
+                            boxSizing: 'border-box',
+                        }
+                        : {
+                            display: 'flex',
+                            flexWrap: 'nowrap',
+                            justifyContent: isLargeScale ? 'space-between' : 'center',
+                            gap: isLargeScale ? '4px' : '10px',
+                        }
+                }>
                     {options.map((option) => {
                         // For 5-star, color fills up to hover/selection
                         // For 10-point NPS, color is individual button state
@@ -93,6 +119,46 @@ export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAns
                         const npsColor = `hsl(${hue}, 70%, 45%)`;
                         const npsColorDark = `hsl(${hue}, 70%, 35%)`;
 
+                        if (neoBrutal) {
+                            const nbActive = isLargeScale
+                                ? isActive
+                                : (hoverIndex !== null ? option <= hoverIndex : (selectedIndex !== null && option <= selectedIndex))
+                            return (
+                                <motion.button
+                                    key={option}
+                                    onMouseEnter={() => setHoverIndex(option)}
+                                    onMouseLeave={() => setHoverIndex(null)}
+                                    onClick={() => handleSelect(option)}
+                                    whileHover={{ scale: 1.06, y: -1 }}
+                                    whileTap={{ scale: 0.94 }}
+                                    style={{
+                                        width: isLargeScale ? '100%' : 44,
+                                        height: isLargeScale ? 30 : 44,
+                                        minWidth: isLargeScale ? 0 : undefined,
+                                        borderRadius: isLargeScale ? '8px' : '50%',
+                                        background: nbActive ? NB.black : NB.yellow,
+                                        border: NB.border,
+                                        boxShadow: nbActive ? NB.shadowSm : NB.shadow,
+                                        color: nbActive ? '#fff' : NB.black,
+                                        fontFamily: NB.font,
+                                        fontWeight: '900',
+                                        fontSize: isLargeScale ? (option >= 10 ? '0.65rem' : '0.7rem') : '1.2rem',
+                                        fontVariantNumeric: 'tabular-nums',
+                                        lineHeight: 1,
+                                        padding: 0,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        transition: 'background 0.15s ease, color 0.15s ease',
+                                        flexShrink: 0,
+                                        boxSizing: 'border-box',
+                                    }}
+                                >
+                                    {isLargeScale ? option : '★'}
+                                </motion.button>
+                            )
+                        }
                         return (
                             <motion.button
                                 key={option}
@@ -127,9 +193,15 @@ export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAns
 
                 {/* Labels for NPS */}
                 {isLargeScale && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
-                        <span style={{ fontSize: '0.65rem', fontWeight: '800', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Not likely</span>
-                        <span style={{ fontSize: '0.65rem', fontWeight: '800', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Very likely</span>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        padding: neoBrutal ? '0 2px' : '0 4px',
+                        boxSizing: 'border-box',
+                    }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: '800', color: neoBrutal ? NB.black : 'var(--color-text-muted)', textTransform: 'uppercase' }}>Not likely</span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: '800', color: neoBrutal ? NB.black : 'var(--color-text-muted)', textTransform: 'uppercase' }}>Very likely</span>
                     </div>
                 )}
             </motion.div>

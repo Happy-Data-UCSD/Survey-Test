@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ClipboardList, Zap, Swords, ListChecks, ChevronDown } from 'lucide-react'
+import { ClipboardList, Zap, Swords, ListChecks, ChevronDown, Sparkles } from 'lucide-react'
 
 const cardStyle = {
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '12px',
+    boxSizing: 'border-box' as const,
+    width: '200px',
+    height: '182px',
     padding: '24px 20px',
     borderRadius: '20px',
     border: '2px solid var(--color-border)',
@@ -16,7 +20,31 @@ const cardStyle = {
     color: 'inherit',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    minWidth: '200px',
+}
+
+const cardTitleStyle = {
+    fontSize: '1.1rem',
+    fontWeight: '800',
+    color: 'var(--color-text)',
+    textAlign: 'center' as const,
+    width: '100%',
+    lineHeight: 1.2,
+    display: '-webkit-box',
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: 'vertical' as const,
+    overflow: 'hidden',
+}
+
+const cardDescStyle = {
+    fontSize: '0.7rem',
+    color: 'var(--color-text-muted)',
+    textAlign: 'center' as const,
+    width: '100%',
+    lineHeight: 1.35,
+    display: '-webkit-box',
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: 'vertical' as const,
+    overflow: 'hidden',
 }
 
 const dropdownStyle = {
@@ -83,27 +111,44 @@ export function SurveySwitcher() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
                 {activeCategory === 'main' && (
-                    <Link
-                        to="/test"
-                        style={cardStyle}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = 'var(--color-primary)'
-                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(100, 116, 139, 0.2)'
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = 'var(--color-border)'
-                            e.currentTarget.style.borderBottomColor = 'var(--color-border-dark)'
-                            e.currentTarget.style.boxShadow = 'none'
-                        }}
-                    >
-                        <ClipboardList size={32} color="var(--color-primary)" strokeWidth={2} />
-                        <span style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--color-text)' }}>
-                            Test Survey
-                        </span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-                            Demographic questions
-                        </span>
-                    </Link>
+                    <>
+                        <Link
+                            to="/test"
+                            style={cardStyle}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--color-primary)'
+                                e.currentTarget.style.boxShadow = '0 4px 20px rgba(100, 116, 139, 0.2)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--color-border)'
+                                e.currentTarget.style.borderBottomColor = 'var(--color-border-dark)'
+                                e.currentTarget.style.boxShadow = 'none'
+                            }}
+                        >
+                            <ClipboardList size={32} color="var(--color-primary)" strokeWidth={2} />
+                            <span style={cardTitleStyle}>Test Survey</span>
+                            <span style={cardDescStyle}>Demographic questions</span>
+                        </Link>
+                        <Link
+                            to="/test-neobrutalism"
+                            style={cardStyle}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = '#000'
+                                e.currentTarget.style.boxShadow = '6px 6px 0 #000'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--color-border)'
+                                e.currentTarget.style.borderBottomColor = 'var(--color-border-dark)'
+                                e.currentTarget.style.boxShadow = 'none'
+                            }}
+                        >
+                            <Sparkles size={32} color="#000" strokeWidth={2} />
+                            <span style={cardTitleStyle}>Test Survey NeoBrutalism</span>
+                            <span style={cardDescStyle}>
+                                Same questions & flow, bold neo-brutal UI
+                            </span>
+                        </Link>
+                    </>
                 )}
 
                 {activeCategory === 'other' && (
@@ -122,12 +167,8 @@ export function SurveySwitcher() {
                             }}
                         >
                             <Zap size={32} color="var(--color-primary)" strokeWidth={2} />
-                            <span style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--color-text)' }}>
-                                Orb Survey
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-                                Swipe cards to answer
-                            </span>
+                            <span style={cardTitleStyle}>Orb Survey</span>
+                            <span style={cardDescStyle}>Swipe cards to answer</span>
                         </Link>
                         <Link
                             to="/arena"
@@ -143,12 +184,8 @@ export function SurveySwitcher() {
                             }}
                         >
                             <Swords size={32} color="var(--color-accent)" strokeWidth={2} />
-                            <span style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--color-text)' }}>
-                                Arena Duel
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-                                Drag to pick the winner
-                            </span>
+                            <span style={cardTitleStyle}>Arena Duel</span>
+                            <span style={cardDescStyle}>Drag to pick the winner</span>
                         </Link>
                     </>
                 )}
@@ -161,19 +198,15 @@ export function SurveySwitcher() {
                             e.currentTarget.style.borderColor = 'var(--color-text-muted)'
                             e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)'
                         }}
-onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--color-border)'
-                                e.currentTarget.style.borderBottomColor = 'var(--color-border-dark)'
-                                e.currentTarget.style.boxShadow = 'none'
-                            }}
-                        >
-                            <ListChecks size={32} color="var(--color-text-muted)" strokeWidth={2} />
-                        <span style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--color-text)' }}>
-                            All Questions
-                        </span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-                            All question types with dropdown
-                        </span>
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--color-border)'
+                            e.currentTarget.style.borderBottomColor = 'var(--color-border-dark)'
+                            e.currentTarget.style.boxShadow = 'none'
+                        }}
+                    >
+                        <ListChecks size={32} color="var(--color-text-muted)" strokeWidth={2} />
+                        <span style={cardTitleStyle}>All Questions</span>
+                        <span style={cardDescStyle}>All question types with dropdown</span>
                     </Link>
                 )}
             </div>

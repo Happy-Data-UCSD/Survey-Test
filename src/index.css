@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@700;800;900&display=swap');
 
 :root {
   --color-primary: #000000;
@@ -134,4 +135,142 @@ body {
 
 .animate-slide-up {
   animation: slideUp 0.3s ease forwards;
+}
+
+/* Neo-brutal survey: slow-drifting background shapes (not the smiley) */
+.nb-bg-float-root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes nb-bg-float-a {
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  33% {
+    transform: translate(10px, -14px) rotate(4deg);
+  }
+
+  66% {
+    transform: translate(-8px, 8px) rotate(-3deg);
+  }
+}
+
+@keyframes nb-bg-float-b {
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  40% {
+    transform: translate(-12px, 10px) rotate(-5deg);
+  }
+
+  80% {
+    transform: translate(6px, -6px) rotate(3deg);
+  }
+}
+
+@keyframes nb-bg-float-c {
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate(14px, 6px) rotate(6deg);
+  }
+}
+
+@keyframes nb-bg-float-d {
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  25% {
+    transform: translate(-6px, -10px) rotate(-4deg);
+  }
+
+  75% {
+    transform: translate(8px, 12px) rotate(2deg);
+  }
+}
+
+@keyframes nb-bg-float-e {
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  45% {
+    transform: translate(-10px, -8px) rotate(3deg);
+  }
+
+  90% {
+    transform: translate(5px, 14px) rotate(-4deg);
+  }
+}
+
+/* Extracted neobrutalism.svg decor groups (see neobrutalism-decor.svg) */
+.nb-decor-drift-a,
+.nb-decor-drift-b,
+.nb-decor-drift-c,
+.nb-decor-drift-d,
+.nb-decor-drift-e {
+  will-change: transform;
+}
+
+.nb-decor-drift-a {
+  animation: nb-bg-float-a 26s ease-in-out infinite;
+}
+
+.nb-decor-drift-b {
+  animation: nb-bg-float-b 22s ease-in-out infinite;
+}
+
+.nb-decor-drift-c {
+  animation: nb-bg-float-c 30s ease-in-out infinite;
+}
+
+.nb-decor-drift-d {
+  animation: nb-bg-float-d 24s ease-in-out -4s infinite;
+}
+
+.nb-decor-drift-e {
+  animation: nb-bg-float-e 28s ease-in-out -2s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .nb-decor-drift-a,
+  .nb-decor-drift-b,
+  .nb-decor-drift-c,
+  .nb-decor-drift-d,
+  .nb-decor-drift-e {
+    animation: none;
+  }
+}
+
+.nb-bg-decor-svg-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.nb-bg-decor-svg-wrap svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }

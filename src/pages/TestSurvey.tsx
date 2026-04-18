@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle, ArrowLeft, ChevronLeft, ChevronRight, Send } from 'lucide-react'
+import { CheckCircle, ArrowLeft, ChevronLeft, ChevronRight, Send, Flame } from 'lucide-react'
+import { NB } from '../styles/neobrutal'
 import { SwipeCard } from '../components/GameModes/SwipeCard'
 import { MultipleChoice } from '../components/GameModes/MultipleChoice'
 import { LikertSlider } from '../components/GameModes/LikertSlider'
@@ -11,6 +12,7 @@ import { SpatialTriage } from '../components/GameModes/SpatialTriage'
 import { NodeConnection } from '../components/GameModes/NodeConnection'
 import { ConfidenceAllocator } from '../components/GameModes/ConfidenceAllocator'
 import { SurveyQuestion } from '../types/survey'
+import { NeoBrutalFloatingBackground } from '../components/NeoBrutalFloatingBackground'
 
 const DEMOGRAPHIC_QUESTIONS: SurveyQuestion[] = [
     {
@@ -74,9 +76,9 @@ const DEMOGRAPHIC_QUESTIONS: SurveyQuestion[] = [
     }
 ]
 
-export function TestSurvey() {
+export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
     const [currentIndex, setCurrentIndex] = useState(0)
-    const [_streak, setStreak] = useState(0)
+    const [streak, setStreak] = useState(0)
     const [isDone, setIsDone] = useState(false)
     const [isOnSubmitPage, setIsOnSubmitPage] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -139,50 +141,121 @@ export function TestSurvey() {
 
     const currentQuestion = DEMOGRAPHIC_QUESTIONS[currentIndex]
     const currentAnswer = answers[currentQuestion.id]
+    const headerProgress = ((currentIndex + 1) / DEMOGRAPHIC_QUESTIONS.length) * 100
+
+    const shellBg = neoBrutal ? NB.pageBg : undefined
 
     return (
         <>
-            <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 64,
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 16px',
-                borderBottom: '2px solid var(--color-border)',
-                background: 'var(--color-surface)',
-                zIndex: 20,
-            }}>
-                <Link
-                    to="/"
-                    style={{
+            {neoBrutal ? (
+                <header style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 64,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '0 14px',
+                    borderBottom: `3px solid ${NB.black}`,
+                    background: NB.pageBg,
+                    zIndex: 20,
+                    fontFamily: NB.font,
+                }}>
+                    <Link
+                        to="/"
+                        aria-label="Back"
+                        style={{
+                            border: NB.border,
+                            borderRadius: 12,
+                            background: '#fff',
+                            boxShadow: NB.shadowSm,
+                            width: 44,
+                            height: 44,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textDecoration: 'none',
+                            color: NB.black,
+                        }}
+                    >
+                        <ArrowLeft size={22} strokeWidth={3} />
+                    </Link>
+                    <div style={{
+                        flex: 1,
+                        height: 14,
+                        borderRadius: 999,
+                        background: NB.black,
+                        padding: 3,
+                        boxSizing: 'border-box',
+                    }}>
+                        <div style={{
+                            height: '100%',
+                            width: `${headerProgress}%`,
+                            borderRadius: 999,
+                            background: NB.green,
+                            transition: 'width 0.25s ease',
+                        }} />
+                    </div>
+                    <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        color: 'var(--color-text-muted)',
-                        textDecoration: 'none',
-                        fontSize: '0.8rem',
-                        fontWeight: '700',
-                    }}
-                >
-                    <ArrowLeft size={18} />
-                    Back
-                </Link>
-                <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-                    <span style={{
-                        fontSize: '0.9rem',
-                        fontWeight: '700',
-                        color: 'var(--color-text)',
+                        gap: 4,
+                        fontWeight: 900,
+                        fontSize: '1rem',
+                        color: NB.black,
+                        minWidth: 40,
+                        justifyContent: 'flex-end',
                     }}>
-                        Test Survey
-                    </span>
+                        <Flame size={22} fill="#FF6B35" color="#000" strokeWidth={2} />
+                        <span>{streak}</span>
+                    </div>
+                </header>
+            ) : (
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 64,
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0 16px',
+                    borderBottom: '2px solid var(--color-border)',
+                    background: 'var(--color-surface)',
+                    zIndex: 20,
+                }}>
+                    <Link
+                        to="/"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: 'var(--color-text-muted)',
+                            textDecoration: 'none',
+                            fontSize: '0.8rem',
+                            fontWeight: '700',
+                        }}
+                    >
+                        <ArrowLeft size={18} />
+                        Back
+                    </Link>
+                    <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                        <span style={{
+                            fontSize: '0.9rem',
+                            fontWeight: '700',
+                            color: 'var(--color-text)',
+                        }}>
+                            Test Survey
+                        </span>
+                    </div>
+                    <div style={{ width: '58px' }} />
                 </div>
-                <div style={{ width: '58px' }} />
-            </div>
+            )}
 
             <div style={{
+                position: neoBrutal ? 'relative' : undefined,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -191,116 +264,150 @@ export function TestSurvey() {
                 width: '100%',
                 paddingTop: '64px',
                 paddingBottom: '80px',
+                background: shellBg,
+                ...(neoBrutal ? { fontFamily: NB.font } : {}),
             }}>
+                {neoBrutal ? <NeoBrutalFloatingBackground /> : null}
+                <div style={{
+                    position: 'relative',
+                    zIndex: neoBrutal ? 1 : undefined,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    width: '100%',
+                    flex: 1,
+                    minHeight: 0,
+                }}>
                 {!isDone && !isOnSubmitPage ? (
                     <>
-                        <div
-                            key={currentQuestion.id}
-                            style={
-                                currentQuestion.type === 'spatial-triage'
-                                    ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%', alignSelf: 'stretch' }
-                                    : undefined
-                            }
-                        >
-                            {currentQuestion.type === 'multiple-choice' && (
-                                <SwipeCard
-                                    question={currentQuestion.question}
-                                    options={currentQuestion.options}
-                                    onAnswer={handleAnswer}
-                                    onDragStart={() => {}}
-                                    selectedAnswer={currentAnswer}
-                                />
-                            )}
-                            {currentQuestion.type === 'vanilla-multiple-choice' && (
-                                <MultipleChoice
-                                    question={currentQuestion.question}
-                                    options={currentQuestion.options}
-                                    onAnswer={handleAnswer}
-                                    onInteraction={() => {}}
-                                    selectedAnswer={currentAnswer}
-                                />
-                            )}
-                            {currentQuestion.type === 'likert' && (
-                                <LikertSlider
-                                    question={currentQuestion.question}
-                                    options={currentQuestion.options}
-                                    onAnswer={handleAnswer}
-                                    onInteraction={() => {}}
-                                    selectedAnswer={currentAnswer}
-                                />
-                            )}
-                            {currentQuestion.type === 'nps' && (
-                                <NPSStars
-                                    question={currentQuestion.question}
-                                    scale={currentQuestion.scale}
-                                    onAnswer={handleAnswer}
-                                    onInteraction={() => {}}
-                                    selectedAnswer={currentAnswer}
-                                />
-                            )}
-                            {currentQuestion.type === 'open-ended' && (
-                                <OpenEndedBox
-                                    question={currentQuestion.question}
-                                    onAnswer={handleAnswer}
-                                    onInteraction={() => {}}
-                                    selectedAnswer={currentAnswer}
-                                />
-                            )}
-                            {currentQuestion.type === 'matrix' && (
-                                <MatrixGrid
-                                    question={currentQuestion.question}
-                                    rows={currentQuestion.rows}
-                                    columns={currentQuestion.columns}
-                                    onAnswer={(answers) => handleAnswer(JSON.stringify(answers))}
-                                    onInteraction={() => {}}
-                                    selectedAnswer={currentAnswer}
-                                />
-                            )}
-                            {currentQuestion.type === 'spatial-triage' && (
-                                <div style={{ flex: 1, width: '100%', minHeight: 0, display: 'flex', alignSelf: 'stretch' }}>
-                                    <SpatialTriage
+                        <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
+                            <div
+                                key={currentQuestion.id}
+                                style={
+                                    currentQuestion.type === 'spatial-triage'
+                                        ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%', alignSelf: 'stretch' }
+                                        : undefined
+                                }
+                            >
+                                {currentQuestion.type === 'multiple-choice' && (
+                                    <SwipeCard
                                         question={currentQuestion.question}
                                         options={currentQuestion.options}
                                         onAnswer={handleAnswer}
                                         onDragStart={() => {}}
                                         selectedAnswer={currentAnswer}
+                                        neoBrutal={neoBrutal}
                                     />
-                                </div>
-                            )}
-                            {currentQuestion.type === 'node-connection' && (
-                                <NodeConnection
-                                    question={currentQuestion.question}
-                                    options={currentQuestion.options}
-                                    onAnswer={handleAnswer}
-                                    onInteraction={() => {}}
-                                    selectedAnswer={currentAnswer}
-                                />
-                            )}
-                            {currentQuestion.type === 'confidence-allocator' && (
-                                <ConfidenceAllocator
-                                    question={currentQuestion.question}
-                                    options={currentQuestion.options}
-                                    onAnswer={handleAnswer}
-                                    onInteraction={() => {}}
-                                    selectedAnswer={currentAnswer}
-                                />
-                            )}
+                                )}
+                                {currentQuestion.type === 'vanilla-multiple-choice' && (
+                                    <MultipleChoice
+                                        question={currentQuestion.question}
+                                        options={currentQuestion.options}
+                                        onAnswer={handleAnswer}
+                                        onInteraction={() => {}}
+                                        selectedAnswer={currentAnswer}
+                                        neoBrutal={neoBrutal}
+                                    />
+                                )}
+                                {currentQuestion.type === 'likert' && (
+                                    <LikertSlider
+                                        question={currentQuestion.question}
+                                        options={currentQuestion.options}
+                                        onAnswer={handleAnswer}
+                                        onInteraction={() => {}}
+                                        selectedAnswer={currentAnswer}
+                                        neoBrutal={neoBrutal}
+                                    />
+                                )}
+                                {currentQuestion.type === 'nps' && (
+                                    <NPSStars
+                                        question={currentQuestion.question}
+                                        scale={currentQuestion.scale}
+                                        onAnswer={handleAnswer}
+                                        onInteraction={() => {}}
+                                        selectedAnswer={currentAnswer}
+                                        neoBrutal={neoBrutal}
+                                    />
+                                )}
+                                {currentQuestion.type === 'open-ended' && (
+                                    <OpenEndedBox
+                                        question={currentQuestion.question}
+                                        onAnswer={handleAnswer}
+                                        onInteraction={() => {}}
+                                        selectedAnswer={currentAnswer}
+                                        neoBrutal={neoBrutal}
+                                    />
+                                )}
+                                {currentQuestion.type === 'matrix' && (
+                                    <MatrixGrid
+                                        question={currentQuestion.question}
+                                        rows={currentQuestion.rows}
+                                        columns={currentQuestion.columns}
+                                        onAnswer={(answers) => handleAnswer(JSON.stringify(answers))}
+                                        onInteraction={() => {}}
+                                        selectedAnswer={currentAnswer}
+                                        neoBrutal={neoBrutal}
+                                    />
+                                )}
+                                {currentQuestion.type === 'spatial-triage' && (
+                                    <div style={{ flex: 1, width: '100%', minHeight: 0, display: 'flex', alignSelf: 'stretch' }}>
+                                        <SpatialTriage
+                                            question={currentQuestion.question}
+                                            options={currentQuestion.options}
+                                            onAnswer={handleAnswer}
+                                            onDragStart={() => {}}
+                                            selectedAnswer={currentAnswer}
+                                            neoBrutal={neoBrutal}
+                                        />
+                                    </div>
+                                )}
+                                {currentQuestion.type === 'node-connection' && (
+                                    <NodeConnection
+                                        question={currentQuestion.question}
+                                        options={currentQuestion.options}
+                                        onAnswer={handleAnswer}
+                                        onInteraction={() => {}}
+                                        selectedAnswer={currentAnswer}
+                                        neoBrutal={neoBrutal}
+                                    />
+                                )}
+                                {currentQuestion.type === 'confidence-allocator' && (
+                                    <ConfidenceAllocator
+                                        question={currentQuestion.question}
+                                        options={currentQuestion.options}
+                                        onAnswer={handleAnswer}
+                                        onInteraction={() => {}}
+                                        selectedAnswer={currentAnswer}
+                                        neoBrutal={neoBrutal}
+                                    />
+                                )}
+                            </div>
                         </div>
 
                         <div style={{
-                            position: 'absolute',
-                            bottom: 24,
-                            left: 0,
-                            right: 0,
+                            height: '80px',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
                             gap: '16px',
+                            width: '100%',
                         }}>
                             <button
                                 onClick={goBack}
                                 disabled={currentIndex === 0}
-                                style={{
+                                style={neoBrutal ? {
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: 52,
+                                    height: 52,
+                                    borderRadius: 14,
+                                    border: NB.border,
+                                    background: '#fff',
+                                    boxShadow: currentIndex === 0 ? 'none' : NB.shadowSm,
+                                    cursor: currentIndex === 0 ? 'not-allowed' : 'pointer',
+                                    opacity: currentIndex === 0 ? 0.4 : 1,
+                                } : {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -314,21 +421,34 @@ export function TestSurvey() {
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <ChevronLeft size={24} color="var(--color-text-muted)" />
+                                <ChevronLeft size={24} color={neoBrutal ? NB.black : 'var(--color-text-muted)'} strokeWidth={neoBrutal ? 3 : 2} />
                             </button>
                             <span style={{
                                 fontSize: '0.85rem',
-                                fontWeight: '700',
-                                color: 'var(--color-text-muted)',
-                                minWidth: '60px',
+                                fontWeight: neoBrutal ? 900 : '700',
+                                color: neoBrutal ? NB.black : 'var(--color-text-muted)',
+                                minWidth: '72px',
                                 textAlign: 'center',
+                                fontFamily: neoBrutal ? NB.font : undefined,
                             }}>
                                 {currentIndex + 1} / {DEMOGRAPHIC_QUESTIONS.length}
                             </span>
                             <button
                                 onClick={goForward}
                                 disabled={currentIndex === DEMOGRAPHIC_QUESTIONS.length - 1}
-                                style={{
+                                style={neoBrutal ? {
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: 52,
+                                    height: 52,
+                                    borderRadius: 14,
+                                    border: NB.border,
+                                    background: '#fff',
+                                    boxShadow: currentIndex === DEMOGRAPHIC_QUESTIONS.length - 1 ? 'none' : NB.shadowSm,
+                                    cursor: currentIndex === DEMOGRAPHIC_QUESTIONS.length - 1 ? 'not-allowed' : 'pointer',
+                                    opacity: currentIndex === DEMOGRAPHIC_QUESTIONS.length - 1 ? 0.4 : 1,
+                                } : {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -342,7 +462,7 @@ export function TestSurvey() {
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <ChevronRight size={24} color="var(--color-text-muted)" />
+                                <ChevronRight size={24} color={neoBrutal ? NB.black : 'var(--color-text-muted)'} strokeWidth={neoBrutal ? 3 : 2} />
                             </button>
                         </div>
                     </>
@@ -354,9 +474,16 @@ export function TestSurvey() {
                         gap: '20px',
                         padding: '32px 24px',
                         borderRadius: '20px',
-                        border: '2px solid var(--color-border)',
-                        borderBottom: '4px solid var(--color-border-dark)',
-                        background: 'white',
+                        ...(neoBrutal ? {
+                            border: NB.border,
+                            boxShadow: NB.shadow,
+                            background: NB.cardBg,
+                            fontFamily: NB.font,
+                        } : {
+                            border: '2px solid var(--color-border)',
+                            borderBottom: '4px solid var(--color-border-dark)',
+                            background: 'white',
+                        }),
                         width: '340px',
                         maxHeight: '70vh',
                         textAlign: 'center',
@@ -364,8 +491,8 @@ export function TestSurvey() {
                         <div>
                             <p style={{
                                 fontSize: '0.65rem',
-                                fontWeight: '700',
-                                color: 'var(--color-text-muted)',
+                                fontWeight: '800',
+                                color: neoBrutal ? NB.black : 'var(--color-text-muted)',
                                 letterSpacing: '0.1em',
                                 textTransform: 'uppercase',
                                 marginBottom: '4px',
@@ -375,7 +502,7 @@ export function TestSurvey() {
                             <p style={{
                                 fontSize: '1.3rem',
                                 fontWeight: '900',
-                                color: 'var(--color-text)',
+                                color: neoBrutal ? NB.black : 'var(--color-text)',
                             }}>
                                 Review Your Answers
                             </p>
@@ -394,7 +521,7 @@ export function TestSurvey() {
                                 const answer = answers[q.id]
                                 const renderAnswer = () => {
                                     if (!answer) {
-                                        return <span style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>Skipped</span>
+                                        return <span style={{ fontStyle: 'italic', color: neoBrutal ? 'rgba(0,0,0,0.45)' : 'var(--color-text-muted)' }}>Skipped</span>
                                     }
                                     if (q.type === 'matrix' || q.type === 'confidence-allocator') {
                                         try {
@@ -403,8 +530,8 @@ export function TestSurvey() {
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                     {Object.entries(parsed).map(([key, value]) => (
                                                         <div key={key} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                                                            <span style={{ color: 'var(--color-text)' }}>{key}:</span>
-                                                            <span style={{ color: 'var(--color-primary)' }}>
+                                                            <span style={{ color: neoBrutal ? NB.black : 'var(--color-text)' }}>{key}:</span>
+                                                            <span style={{ color: neoBrutal ? NB.green : 'var(--color-primary)' }}>
                                                                 {q.type === 'confidence-allocator' ? `${value}%` : String(value)}
                                                             </span>
                                                         </div>
@@ -430,13 +557,14 @@ export function TestSurvey() {
                                         textAlign: 'left',
                                         padding: '12px',
                                         borderRadius: '12px',
-                                        background: 'var(--color-surface)',
-                                        border: '1px solid var(--color-border)',
+                                        background: neoBrutal ? '#fff' : 'var(--color-surface)',
+                                        border: neoBrutal ? `2px solid ${NB.black}` : '1px solid var(--color-border)',
+                                        boxShadow: neoBrutal ? NB.shadowSm : undefined,
                                     }}>
                                         <p style={{
                                             fontSize: '0.7rem',
-                                            fontWeight: '700',
-                                            color: 'var(--color-text-muted)',
+                                            fontWeight: '800',
+                                            color: neoBrutal ? NB.black : 'var(--color-text-muted)',
                                             marginBottom: '4px',
                                         }}>
                                             Q{idx + 1}
@@ -444,7 +572,7 @@ export function TestSurvey() {
                                         <p style={{
                                             fontSize: '0.85rem',
                                             fontWeight: '600',
-                                            color: 'var(--color-text)',
+                                            color: neoBrutal ? NB.black : 'var(--color-text)',
                                             marginBottom: '6px',
                                             lineHeight: '1.3',
                                         }}>
@@ -452,7 +580,7 @@ export function TestSurvey() {
                                         </p>
                                         <div style={{
                                             fontSize: '0.8rem',
-                                            color: 'var(--color-primary)',
+                                            color: neoBrutal ? NB.green : 'var(--color-primary)',
                                             fontWeight: '600',
                                         }}>
                                             {renderAnswer()}
@@ -470,7 +598,19 @@ export function TestSurvey() {
                         }}>
                             <button
                                 onClick={goBackFromSubmit}
-                                style={{
+                                style={neoBrutal ? {
+                                    flex: 1,
+                                    padding: '14px 20px',
+                                    borderRadius: '14px',
+                                    border: NB.border,
+                                    background: '#fff',
+                                    boxShadow: NB.shadowSm,
+                                    fontSize: '0.85rem',
+                                    fontFamily: NB.font,
+                                    fontWeight: 800,
+                                    color: NB.black,
+                                    cursor: 'pointer',
+                                } : {
                                     flex: 1,
                                     padding: '14px 20px',
                                     borderRadius: '12px',
@@ -488,8 +628,24 @@ export function TestSurvey() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="btn-primary"
-                                style={{
+                                className={neoBrutal ? undefined : 'btn-primary'}
+                                style={neoBrutal ? {
+                                    flex: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    opacity: isSubmitting ? 0.7 : 1,
+                                    padding: '14px 20px',
+                                    borderRadius: '14px',
+                                    border: NB.border,
+                                    background: NB.yellow,
+                                    boxShadow: NB.shadow,
+                                    fontFamily: NB.font,
+                                    fontWeight: 900,
+                                    color: NB.black,
+                                    cursor: 'pointer',
+                                } : {
                                     flex: 1,
                                     display: 'flex',
                                     alignItems: 'center',
@@ -517,18 +673,25 @@ export function TestSurvey() {
                         gap: '12px',
                         padding: '36px 28px',
                         borderRadius: '20px',
-                        border: '2px solid var(--color-border)',
-                        borderBottom: '4px solid var(--color-border-dark)',
-                        background: 'white',
+                        ...(neoBrutal ? {
+                            border: NB.border,
+                            boxShadow: NB.shadow,
+                            background: NB.cardBg,
+                            fontFamily: NB.font,
+                        } : {
+                            border: '2px solid var(--color-border)',
+                            borderBottom: '4px solid var(--color-border-dark)',
+                            background: 'white',
+                        }),
                         width: '300px',
                         textAlign: 'center',
                     }}>
-                        <CheckCircle size={52} color="var(--color-primary)" strokeWidth={1.5} />
+                        <CheckCircle size={52} color={neoBrutal ? NB.green : 'var(--color-primary)'} strokeWidth={neoBrutal ? 2.5 : 1.5} />
                         <div>
                             <p style={{
                                 fontSize: '0.65rem',
-                                fontWeight: '700',
-                                color: 'var(--color-text-muted)',
+                                fontWeight: '800',
+                                color: neoBrutal ? NB.black : 'var(--color-text-muted)',
                                 letterSpacing: '0.1em',
                                 textTransform: 'uppercase',
                                 marginBottom: '4px',
@@ -538,20 +701,34 @@ export function TestSurvey() {
                             <p style={{
                                 fontSize: '1.4rem',
                                 fontWeight: '900',
-                                color: 'var(--color-text)',
+                                color: neoBrutal ? NB.black : 'var(--color-text)',
                             }}>
                                 Thank you for your response!
                             </p>
                         </div>
                         <Link
                             to="/"
-                            className="btn-primary"
-                            style={{ marginTop: '8px', width: '100%', textDecoration: 'none', textAlign: 'center', color: 'white' }}
+                            className={neoBrutal ? undefined : 'btn-primary'}
+                            style={neoBrutal ? {
+                                marginTop: '8px',
+                                width: '100%',
+                                textDecoration: 'none',
+                                textAlign: 'center',
+                                padding: '14px 20px',
+                                borderRadius: '14px',
+                                border: NB.border,
+                                background: NB.yellow,
+                                boxShadow: NB.shadow,
+                                fontFamily: NB.font,
+                                fontWeight: 900,
+                                color: NB.black,
+                            } : { marginTop: '8px', width: '100%', textDecoration: 'none', textAlign: 'center', color: 'white' }}
                         >
                             Back to Surveys
                         </Link>
                     </div>
                 )}
+                </div>
             </div>
         </>
     )

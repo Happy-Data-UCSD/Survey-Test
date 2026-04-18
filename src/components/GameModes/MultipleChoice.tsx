@@ -1,14 +1,17 @@
+import { NB } from '../../styles/neobrutal'
+
 interface MultipleChoiceProps {
     question: string
     options: { up: string; down: string; left: string; right: string }
     onAnswer: (answer: string) => void
     onInteraction?: () => void
     selectedAnswer?: string
+    neoBrutal?: boolean
 }
 
 const OPTION_ORDER: (keyof MultipleChoiceProps['options'])[] = ['up', 'down', 'left', 'right']
 
-export function MultipleChoice({ question, options, onAnswer, onInteraction, selectedAnswer }: MultipleChoiceProps) {
+export function MultipleChoice({ question, options, onAnswer, onInteraction, selectedAnswer, neoBrutal }: MultipleChoiceProps) {
     const optionList = OPTION_ORDER.map((key) => options[key])
 
     const handleSelect = (option: string) => {
@@ -24,6 +27,7 @@ export function MultipleChoice({ question, options, onAnswer, onInteraction, sel
                 alignItems: 'center',
                 gap: 20,
                 maxWidth: 360,
+                ...(neoBrutal ? { fontFamily: NB.font } : {}),
             }}
             className="animate-pop-in"
         >
@@ -31,7 +35,7 @@ export function MultipleChoice({ question, options, onAnswer, onInteraction, sel
                 style={{
                     fontSize: '1.1rem',
                     fontWeight: 800,
-                    color: 'var(--color-text)',
+                    color: neoBrutal ? NB.black : 'var(--color-text)',
                     textAlign: 'center',
                     lineHeight: 1.35,
                     margin: 0,
@@ -49,6 +53,44 @@ export function MultipleChoice({ question, options, onAnswer, onInteraction, sel
             >
                 {optionList.map((opt) => {
                     const isSelected = selectedAnswer === opt
+                    if (neoBrutal) {
+                        return (
+                            <button
+                                key={opt}
+                                type="button"
+                                onClick={() => handleSelect(opt)}
+                                style={{
+                                    width: '100%',
+                                    padding: '14px 20px',
+                                    fontSize: '0.9rem',
+                                    fontFamily: NB.font,
+                                    fontWeight: 800,
+                                    textAlign: 'left',
+                                    border: NB.border,
+                                    borderRadius: 16,
+                                    boxShadow: isSelected ? NB.shadowSm : NB.shadow,
+                                    background: isSelected ? NB.black : NB.yellow,
+                                    color: isSelected ? '#fff' : NB.black,
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.08s ease, box-shadow 0.08s ease',
+                                }}
+                                onMouseDown={(e) => {
+                                    e.currentTarget.style.transform = 'translate(3px, 3px)'
+                                    e.currentTarget.style.boxShadow = 'none'
+                                }}
+                                onMouseUp={(e) => {
+                                    e.currentTarget.style.transform = ''
+                                    e.currentTarget.style.boxShadow = isSelected ? NB.shadowSm : NB.shadow
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = ''
+                                    e.currentTarget.style.boxShadow = isSelected ? NB.shadowSm : NB.shadow
+                                }}
+                            >
+                                {opt}
+                            </button>
+                        )
+                    }
                     return (
                         <button
                             key={opt}

@@ -15,6 +15,7 @@ export default function App() {
                     <Route path="/arena" element={<ArenaSurvey />} />
                     <Route path="/all" element={<AllQuestionsSurvey />} />
                     <Route path="/test" element={<TestSurvey />} />
+                    <Route path="/test-neobrutalism" element={<TestSurvey neoBrutal />} />
                 </Routes>
             </div>
         </BrowserRouter>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { Move } from 'lucide-react'
+import { NB } from '../../styles/neobrutal'
 
 interface NodeConnectionProps {
     question: string
@@ -9,6 +10,7 @@ interface NodeConnectionProps {
     onAnswer: (answer: string) => void
     onInteraction?: () => void
     selectedAnswer?: string
+    neoBrutal?: boolean
 }
 
 function getPointerCoords(event: PointerEvent | TouchEvent | MouseEvent): { x: number; y: number } {
@@ -32,7 +34,7 @@ function placeOnCircle(count: number, radius: number, cx: number, cy: number) {
 const CONNECTION_ANIM_DURATION = 400
 const HINT_ANIM_DURATION = 2500
 
-export function NodeConnection({ question, options, onAnswer, onInteraction, selectedAnswer }: NodeConnectionProps) {
+export function NodeConnection({ question, options, onAnswer, onInteraction, selectedAnswer, neoBrutal }: NodeConnectionProps) {
     const [dragEnd, setDragEnd] = useState<{ x: number; y: number } | null>(null)
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
     const [connectingIndex, setConnectingIndex] = useState<number | null>(null)
@@ -111,10 +113,13 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                 setHoveredIndex(null)
             }
         },
-        { triggerAllEvents: true }
+        { triggerAllEvents: true, preventScroll: true, preventScrollAxis: 'xy' }
     )
 
     const isDisabled = connectingIndex !== null
+
+    const lineMuted = neoBrutal ? 'rgba(0,0,0,0.25)' : 'var(--color-border)'
+    const lineActive = neoBrutal ? NB.black : 'var(--color-primary)'
 
     return (
         <div
@@ -125,6 +130,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                 gap: 20,
                 maxWidth: 420,
                 overflow: 'visible',
+                ...(neoBrutal ? { fontFamily: NB.font } : {}),
             }}
             className="animate-pop-in"
         >
@@ -132,7 +138,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                 style={{
                     fontSize: '1.1rem',
                     fontWeight: 800,
-                    color: 'var(--color-text)',
+                    color: neoBrutal ? NB.black : 'var(--color-text)',
                     textAlign: 'center',
                     lineHeight: 1.35,
                     margin: 0,
@@ -165,7 +171,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             y1={cy}
                             x2={p.x}
                             y2={p.y}
-                            stroke="var(--color-border)"
+                            stroke={lineMuted}
                             strokeWidth={2}
                             strokeDasharray="8 6"
                             strokeOpacity={0.75}
@@ -180,7 +186,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                                 y1={cy}
                                 x2={p.x}
                                 y2={p.y}
-                                stroke="var(--color-primary)"
+                                stroke={lineActive}
                                 strokeWidth={4}
                                 strokeLinecap="round"
                                 strokeDasharray={len}
@@ -196,7 +202,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             y1={cy}
                             x2={dragEnd.x}
                             y2={dragEnd.y}
-                            stroke="var(--color-primary)"
+                            stroke={lineActive}
                             strokeWidth={3}
                             strokeLinecap="round"
                         />
@@ -210,7 +216,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                                 y1={cy}
                                 x2={p.x}
                                 y2={p.y}
-                                stroke="var(--color-primary)"
+                                stroke={lineActive}
                                 strokeWidth={2}
                                 strokeDasharray={`${len} ${len}`}
                                 strokeOpacity={0.5}
@@ -240,9 +246,12 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                                 width: nodeWidth,
                                 height: nodeHeight,
                                 borderRadius: 9999,
-                                background: isHighlighted ? 'var(--color-primary)' : 'white',
-                                border: `3px solid ${isHighlighted ? 'var(--color-primary-dark)' : 'var(--color-border)'}`,
-                                borderBottom: `4px solid ${isHighlighted ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
+                                background: neoBrutal
+                                    ? (isHighlighted ? NB.black : NB.yellow)
+                                    : (isHighlighted ? 'var(--color-primary)' : 'white'),
+                                border: neoBrutal ? NB.border : `3px solid ${isHighlighted ? 'var(--color-primary-dark)' : 'var(--color-border)'}`,
+                                borderBottom: neoBrutal ? undefined : `4px solid ${isHighlighted ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
+                                boxShadow: neoBrutal ? (isHighlighted ? NB.shadowSm : NB.shadow) : undefined,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -260,7 +269,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                                 style={{
                                     fontSize: '0.8rem',
                                     fontWeight: '800',
-                                    color: isHighlighted ? 'white' : 'var(--color-text)',
+                                    color: isHighlighted ? (neoBrutal ? NB.yellow : 'white') : (neoBrutal ? NB.black : 'var(--color-text)'),
                                     textAlign: 'center',
                                     lineHeight: 1.2,
                                     overflow: 'hidden',
@@ -288,8 +297,9 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             width: centerNodeSize,
                             height: centerNodeSize,
                             borderRadius: '50%',
-                            background: 'rgba(100, 116, 139, 0.15)',
-                            border: '3px solid var(--color-primary)',
+                            background: neoBrutal ? NB.yellow : 'rgba(100, 116, 139, 0.15)',
+                            border: neoBrutal ? NB.border : '3px solid var(--color-primary)',
+                            boxShadow: neoBrutal ? NB.shadowSm : undefined,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -312,10 +322,12 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                         }
                         transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
                     >
-                        <Move size={24} style={{ color: 'var(--color-primary)' }} />
+                        <Move size={24} style={{ color: neoBrutal ? NB.black : 'var(--color-primary)' }} />
                     </motion.div>
                 )}
+            </div>
 
+            <div style={{ position: 'relative', height: '32px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <AnimatePresence>
                     {releaseMissed && (
                         <motion.p
@@ -324,9 +336,6 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             exit={{ opacity: 0 }}
                             style={{
                                 position: 'absolute',
-                                bottom: -54,
-                                left: 0,
-                                right: 0,
                                 fontSize: '0.8rem',
                                 fontWeight: '800',
                                 color: 'var(--color-danger)',
@@ -345,12 +354,9 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             exit={{ opacity: 0 }}
                             style={{
                                 position: 'absolute',
-                                bottom: -54,
-                                left: 0,
-                                right: 0,
                                 fontSize: '0.8rem',
                                 fontWeight: '800',
-                                color: 'var(--color-primary)',
+                                color: neoBrutal ? NB.black : 'var(--color-primary)',
                                 letterSpacing: '0.05em',
                                 textAlign: 'center',
                                 margin: 0,
@@ -363,9 +369,6 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                 <motion.p
                     style={{
                         position: 'absolute',
-                        bottom: -74,
-                        left: 0,
-                        right: 0,
                         fontSize: '0.8rem',
                         fontWeight: '700',
                         color: 'var(--color-text-muted)',
