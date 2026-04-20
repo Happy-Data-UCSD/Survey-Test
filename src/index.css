@@ -172,6 +172,26 @@ body {
   z-index: 0;
 }
 
+/* Front layer sits above the question card (zIndex:1) but below the header (zIndex:20). */
+.nb-bg-float-root.nb-bg-front {
+  z-index: 5;
+}
+
+/* Split the decor so each sprite lives on exactly one layer:
+   - edge-hugging sprites (a, c, d) come forward on the front layer
+   - large center/card-overlapping sprites (b, e) stay on the back layer
+   Together the two layers still render the complete decor set. */
+.nb-bg-front .nb-decor-drift-b,
+.nb-bg-front .nb-decor-drift-e {
+  display: none;
+}
+
+.nb-bg-back .nb-decor-drift-a,
+.nb-bg-back .nb-decor-drift-c,
+.nb-bg-back .nb-decor-drift-d {
+  display: none;
+}
+
 @keyframes nb-bg-float-a {
 
   0%,

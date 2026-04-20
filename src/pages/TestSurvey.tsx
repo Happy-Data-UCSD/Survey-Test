@@ -339,7 +339,8 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                 background: shellBg,
                 ...(neoBrutal ? { fontFamily: NB.font } : {}),
             }}>
-                {neoBrutal ? <NeoBrutalFloatingBackground /> : null}
+                {neoBrutal ? <NeoBrutalFloatingBackground variant="back" /> : null}
+                {neoBrutal ? <NeoBrutalFloatingBackground variant="front" /> : null}
                 <div style={{
                     position: 'relative',
                     zIndex: neoBrutal ? 1 : undefined,

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type PointerEvent, type MouseEvent, type TouchEvent } from 'react'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { NB } from '../../styles/neobrutal'
@@ -44,6 +44,74 @@ function OptionPill({ dir, label, active, selected, neoBrutal }: { dir: string; 
     )
 }
 
+function NBOptionButton({
+    dir,
+    label,
+    active,
+    selected,
+    onSelect,
+}: {
+    dir: 'up' | 'down' | 'left' | 'right'
+    label: string
+    active: boolean
+    selected: boolean
+    onSelect: () => void
+}) {
+    const highlighted = active || selected
+    const stopDragStart = (e: PointerEvent | MouseEvent | TouchEvent) => {
+        // Prevent the parent useDrag binding from capturing this pointer so the
+        // button's onClick fires normally and a tap-to-select works.
+        e.stopPropagation()
+    }
+    return (
+        <button
+            type="button"
+            onPointerDown={stopDragStart}
+            onMouseDown={stopDragStart}
+            onTouchStart={stopDragStart}
+            onClick={(e) => {
+                e.stopPropagation()
+                onSelect()
+            }}
+            style={{
+                width: 82,
+                height: 82,
+                border: NB.border,
+                borderRadius: 14,
+                background: selected ? NB.green : NB.yellow,
+                boxShadow: highlighted ? NB.shadowSm : NB.shadow,
+                transform: active ? 'translate(3px, 3px) scale(1.03)' : 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+                padding: '6px 4px',
+                cursor: 'pointer',
+                fontFamily: NB.font,
+                color: NB.black,
+                transition: 'transform 0.08s ease, box-shadow 0.08s ease',
+                userSelect: 'none',
+                touchAction: 'manipulation',
+            }}
+        >
+            <span style={{ fontSize: '1.7rem', lineHeight: 1, fontWeight: 900 }}>{ARROWS[dir]}</span>
+            <span
+                style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 900,
+                    lineHeight: 1.1,
+                    textAlign: 'center',
+                    padding: '0 2px',
+                    wordBreak: 'break-word',
+                }}
+            >
+                {label}
+            </span>
+        </button>
+    )
+}
+
 export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAnswer, neoBrutal }: SwipeCardProps) {
     const [activeDir, setActiveDir] = useState<Direction>(null)
 
@@ -51,7 +119,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
     const my = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
     const rotate = useTransform(mx, [-200, 200], [-12, 12])
 
-    const threshold = 100
+    const threshold = 50
 
     const bind = useDrag(({ down, movement: [dx, dy], first }) => {
         if (first && onDragStart) onDragStart()
@@ -80,7 +148,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                 my.set(0)
             }
         }
-    }, { preventScroll: true, preventScrollAxis: 'xy' })
+    }, { preventScroll: true, preventScrollAxis: 'xy', filterTaps: true })
 
     const cardNeo = neoBrutal
         ? {
@@ -88,7 +156,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
             borderRadius: '20px',
             border: NB.border,
             boxShadow: NB.shadow,
-            padding: '28px 22px',
+            padding: '22px 18px',
         }
         : {
             background: 'white',
@@ -99,7 +167,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
         }
 
     return (
-        <div style={{ position: 'relative', width: '320px', height: '420px', ...neoBrutal ? { fontFamily: NB.font } : {} }} className="animate-pop-in">
+        <div style={{ position: 'relative', width: '320px', height: '440px', ...neoBrutal ? { fontFamily: NB.font } : {} }} className="animate-pop-in">
             <motion.div
                 {...(bind() as any)}
                 style={{
@@ -118,57 +186,141 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                 }}
                 whileTap={{ cursor: 'grabbing' }}
             >
-                {/* Top Option */}
-                <div style={{ position: 'absolute', top: '16px', left: '50%', transform: 'translateX(-50%)' }}>
-                    <OptionPill dir="up" label={options.up} active={activeDir === 'up'} selected={selectedAnswer === options.up} neoBrutal={neoBrutal} />
-                </div>
+                {neoBrutal ? (
+                    <>
+                        <div style={{
+                            textAlign: 'center',
+                            userSelect: 'none',
+                            pointerEvents: 'none',
+                            padding: '6px 6px 0',
+                        }}>
+                            <h2 style={{
+                                fontSize: '1.25rem',
+                                fontWeight: 900,
+                                lineHeight: 1.25,
+                                color: NB.black,
+                                margin: 0,
+                            }}>
+                                {question}
+                            </h2>
+                            <p style={{
+                                fontSize: '0.78rem',
+                                fontWeight: 800,
+                                color: NB.black,
+                                letterSpacing: '0.08em',
+                                textTransform: 'uppercase',
+                                marginTop: 8,
+                                marginBottom: 0,
+                                opacity: 0.75,
+                            }}>
+                                Swipe to Answer
+                            </p>
+                        </div>
 
-                {/* Question (Centered) */}
-                <div style={{ 
-                    position: 'absolute', 
-                    top: '50%', 
-                    left: '50%', 
-                    transform: 'translate(-50%, -50%)',
-                    width: '65%',
-                    textAlign: 'center', 
-                    userSelect: 'none',
-                    pointerEvents: 'none'
-                }}>
-                    <h2 style={{
-                        fontSize: '1.4rem',
-                        fontWeight: '800',
-                        lineHeight: 1.35,
-                        color: neoBrutal ? NB.black : 'var(--color-text)',
-                        marginBottom: '12px',
-                    }}>
-                        {question}
-                    </h2>
-                    <p style={{
-                        fontSize: '0.7rem',
-                        fontWeight: '800',
-                        color: neoBrutal ? NB.black : 'var(--color-text-muted)',
-                        letterSpacing: '0.08em',
-                        textTransform: 'uppercase',
-                        opacity: 0.6,
-                    }}>
-                        swipe to answer
-                    </p>
-                </div>
+                        <div style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginTop: 12,
+                        }}>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(3, 82px)',
+                                gridTemplateRows: 'repeat(3, 82px)',
+                                gap: 10,
+                            }}>
+                                <span />
+                                <NBOptionButton
+                                    dir="up"
+                                    label={options.up}
+                                    active={activeDir === 'up'}
+                                    selected={selectedAnswer === options.up}
+                                    onSelect={() => onAnswer(options.up)}
+                                />
+                                <span />
+                                <NBOptionButton
+                                    dir="left"
+                                    label={options.left}
+                                    active={activeDir === 'left'}
+                                    selected={selectedAnswer === options.left}
+                                    onSelect={() => onAnswer(options.left)}
+                                />
+                                <span />
+                                <NBOptionButton
+                                    dir="right"
+                                    label={options.right}
+                                    active={activeDir === 'right'}
+                                    selected={selectedAnswer === options.right}
+                                    onSelect={() => onAnswer(options.right)}
+                                />
+                                <span />
+                                <NBOptionButton
+                                    dir="down"
+                                    label={options.down}
+                                    active={activeDir === 'down'}
+                                    selected={selectedAnswer === options.down}
+                                    onSelect={() => onAnswer(options.down)}
+                                />
+                                <span />
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        {/* Top Option */}
+                        <div style={{ position: 'absolute', top: '16px', left: '50%', transform: 'translateX(-50%)' }}>
+                            <OptionPill dir="up" label={options.up} active={activeDir === 'up'} selected={selectedAnswer === options.up} neoBrutal={neoBrutal} />
+                        </div>
 
-                {/* Left Option */}
-                <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}>
-                    <OptionPill dir="left" label={options.left} active={activeDir === 'left'} selected={selectedAnswer === options.left} neoBrutal={neoBrutal} />
-                </div>
+                        {/* Question (Centered) */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '65%',
+                            textAlign: 'center',
+                            userSelect: 'none',
+                            pointerEvents: 'none'
+                        }}>
+                            <h2 style={{
+                                fontSize: '1.4rem',
+                                fontWeight: '800',
+                                lineHeight: 1.35,
+                                color: neoBrutal ? NB.black : 'var(--color-text)',
+                                marginBottom: '12px',
+                            }}>
+                                {question}
+                            </h2>
+                            <p style={{
+                                fontSize: '0.7rem',
+                                fontWeight: '800',
+                                color: neoBrutal ? NB.black : 'var(--color-text-muted)',
+                                letterSpacing: '0.08em',
+                                textTransform: 'uppercase',
+                                opacity: 0.6,
+                            }}>
+                                swipe to answer
+                            </p>
+                        </div>
 
-                {/* Right Option */}
-                <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }}>
-                    <OptionPill dir="right" label={options.right} active={activeDir === 'right'} selected={selectedAnswer === options.right} neoBrutal={neoBrutal} />
-                </div>
+                        {/* Left Option */}
+                        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}>
+                            <OptionPill dir="left" label={options.left} active={activeDir === 'left'} selected={selectedAnswer === options.left} neoBrutal={neoBrutal} />
+                        </div>
 
-                {/* Bottom Option */}
-                <div style={{ position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)' }}>
-                    <OptionPill dir="down" label={options.down} active={activeDir === 'down'} selected={selectedAnswer === options.down} neoBrutal={neoBrutal} />
-                </div>
+                        {/* Right Option */}
+                        <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }}>
+                            <OptionPill dir="right" label={options.right} active={activeDir === 'right'} selected={selectedAnswer === options.right} neoBrutal={neoBrutal} />
+                        </div>
+
+                        {/* Bottom Option */}
+                        <div style={{ position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)' }}>
+                            <OptionPill dir="down" label={options.down} active={activeDir === 'down'} selected={selectedAnswer === options.down} neoBrutal={neoBrutal} />
+                        </div>
+                    </>
+                )}
             </motion.div>
         </div>
     )
