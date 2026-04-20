@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle, ArrowLeft, ChevronLeft, ChevronRight, Send, Flame } from 'lucide-react'
+import useSound from 'use-sound'
 import { NB } from '../styles/neobrutal'
 import { SwipeCard } from '../components/GameModes/SwipeCard'
 import { MultipleChoice } from '../components/GameModes/MultipleChoice'
@@ -13,6 +14,55 @@ import { NodeConnection } from '../components/GameModes/NodeConnection'
 import { ConfidenceAllocator } from '../components/GameModes/ConfidenceAllocator'
 import { SurveyQuestion } from '../types/survey'
 import { NeoBrutalFloatingBackground } from '../components/NeoBrutalFloatingBackground'
+import { useGamifiedSound } from '../hooks/useGamifiedSound'
+import neoLogo from '../assets/neologo.svg'
+import fireWhooshUrl from '../assets/sounds/fire-whoosh.mp3'
+
+type SparkVec = { dx: number; dy: number; rotate: number; size: number }
+const SPARK_VECTORS: SparkVec[] = [
+    { dx: -22, dy: -24, rotate: -25, size: 12 },
+    { dx: 0,   dy: -30, rotate: 0,   size: 14 },
+    { dx: 22,  dy: -24, rotate: 25,  size: 12 },
+    { dx: 18,  dy: -6,  rotate: 45,  size: 10 },
+]
+
+function FlameSparks({ burstKey }: { burstKey: number }) {
+    const [visible, setVisible] = useState(false)
+
+    useEffect(() => {
+        if (burstKey === 0) return
+        setVisible(true)
+        const t = setTimeout(() => setVisible(false), 750)
+        return () => clearTimeout(t)
+    }, [burstKey])
+
+    if (!visible) return null
+
+    return (
+        <>
+            {SPARK_VECTORS.map((v, i) => (
+                <span
+                    key={`${burstKey}-${i}`}
+                    style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '6px',
+                        marginTop: -v.size / 2,
+                        marginLeft: -v.size / 2,
+                        pointerEvents: 'none',
+                        // CSS custom props consumed by nb-spark-out
+                        ['--dx' as never]: `${v.dx}px`,
+                        ['--dy' as never]: `${v.dy}px`,
+                        animation: 'nb-spark-out 0.7s ease-out forwards',
+                        transform: `rotate(${v.rotate}deg)`,
+                    }}
+                >
+                    <Flame size={v.size} fill="#FF6B35" color="#000" strokeWidth={2} />
+                </span>
+            ))}
+        </>
+    )
+}
 
 const DEMOGRAPHIC_QUESTIONS: SurveyQuestion[] = [
     {
@@ -83,6 +133,10 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
     const [isOnSubmitPage, setIsOnSubmitPage] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [answers, setAnswers] = useState<Record<number, string>>({})
+    const [burstKey, setBurstKey] = useState(0)
+
+    const { playSuccess, playWhoosh } = useGamifiedSound()
+    const [playFire] = useSound(fireWhooshUrl, { volume: 0.55, soundEnabled: neoBrutal })
 
     const goBack = useCallback(() => {
         if (currentIndex > 0) {
@@ -103,6 +157,13 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
         setAnswers(prev => ({ ...prev, [questionId]: answer }))
         setStreak(s => s + 1)
 
+        if (neoBrutal) {
+            setBurstKey(k => k + 1)
+            playSuccess()
+            playWhoosh()
+            try { playFire() } catch { /* missing mp3 — synth fallback covers it */ }
+        }
+
         setTimeout(() => {
             if (currentIndex < DEMOGRAPHIC_QUESTIONS.length - 1) {
                 setCurrentIndex(i => i + 1)
@@ -110,7 +171,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                 setIsOnSubmitPage(true)
             }
         }, 300)
-    }, [currentIndex])
+    }, [currentIndex, neoBrutal, playSuccess, playWhoosh, playFire])
 
     const handleSubmit = useCallback(() => {
         setIsSubmitting(true)
@@ -199,6 +260,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                         }} />
                     </div>
                     <div style={{
+                        position: 'relative',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 4,
@@ -208,8 +270,18 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                         minWidth: 40,
                         justifyContent: 'flex-end',
                     }}>
-                        <Flame size={22} fill="#FF6B35" color="#000" strokeWidth={2} />
+                        <span
+                            key={`flame-${burstKey}`}
+                            style={{
+                                display: 'inline-flex',
+                                transformOrigin: 'center',
+                                animation: burstKey > 0 ? 'nb-flame-pop 0.55s ease-out' : undefined,
+                            }}
+                        >
+                            <Flame size={22} fill="#FF6B35" color="#000" strokeWidth={2} />
+                        </span>
                         <span>{streak}</span>
+                        <FlameSparks burstKey={burstKey} />
                     </div>
                 </header>
             ) : (
@@ -278,6 +350,36 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                     flex: 1,
                     minHeight: 0,
                 }}>
+                {neoBrutal && !isDone && !isOnSubmitPage && (
+                    <div style={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        paddingTop: 20,
+                        paddingBottom: 32,
+                        position: 'relative',
+                        zIndex: 2,
+                        flexShrink: 0,
+                    }}>
+                        <img
+                            key={`logo-${burstKey}`}
+                            src={neoLogo}
+                            alt="Neo"
+                            width={112}
+                            height={112}
+                            draggable={false}
+                            style={{
+                                display: 'block',
+                                transformOrigin: 'center',
+                                animation: burstKey > 0
+                                    ? 'nb-logo-burst 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                                    : 'nb-logo-idle 2.8s ease-in-out infinite',
+                                filter: 'drop-shadow(3px 3px 0 #000)',
+                                userSelect: 'none',
+                            }}
+                        />
+                    </div>
+                )}
                 {!isDone && !isOnSubmitPage ? (
                     <>
                         <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>

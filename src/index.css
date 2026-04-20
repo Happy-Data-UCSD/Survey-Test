@@ -137,6 +137,32 @@ body {
   animation: slideUp 0.3s ease forwards;
 }
 
+/* Neo-brutal hero logo + flame pop animations */
+@keyframes nb-logo-burst {
+  0%   { transform: rotate(0deg)   scale(1); }
+  40%  { transform: rotate(220deg) scale(1.2); }
+  75%  { transform: rotate(340deg) scale(0.95); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes nb-logo-idle {
+  0%, 100% { transform: translateY(0)    rotate(-2deg); }
+  50%      { transform: translateY(-4px) rotate(2deg); }
+}
+
+@keyframes nb-flame-pop {
+  0%   { transform: scale(1)    rotate(0deg);  filter: drop-shadow(0 0 0 transparent); }
+  40%  { transform: scale(1.55) rotate(-8deg); filter: drop-shadow(0 0 10px #FF6B35); }
+  70%  { transform: scale(1.15) rotate(6deg);  filter: drop-shadow(0 0 6px  #FFDE03); }
+  100% { transform: scale(1)    rotate(0deg);  filter: drop-shadow(0 0 0 transparent); }
+}
+
+@keyframes nb-spark-out {
+  0%   { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+}
+
 /* Neo-brutal survey: slow-drifting background shapes (not the smiley) */
 .nb-bg-float-root {
   position: absolute;
