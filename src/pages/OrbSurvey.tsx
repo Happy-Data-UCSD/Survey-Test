@@ -35,15 +35,11 @@ export function OrbSurvey() {
     const [reaction, setReaction] = useState<'idle' | 'happy'>('idle')
     const [isDone, setIsDone] = useState(false)
 
-    const { playInteraction, playSuccess, playWhoosh } = useGamifiedSound()
-
-    const handleDragStart = useCallback(() => {
-        playInteraction()
-    }, [playInteraction])
+    const { playSwipe, playCelebration } = useGamifiedSound()
 
     const handleAnswer = useCallback((_answer: string) => {
 
-        playWhoosh()
+        playSwipe()
         setStreak(s => s + 1)
         setReaction('happy')
 
@@ -53,10 +49,10 @@ export function OrbSurvey() {
                 setCurrentIndex(i => i + 1)
             } else {
                 setIsDone(true)
-                playSuccess()
+                playCelebration()
             }
         }, 600)
-    }, [currentIndex, playWhoosh, playSuccess])
+    }, [currentIndex, playSwipe, playCelebration])
 
     const currentQuestion = SURVEY_QUESTIONS[currentIndex]
 
@@ -91,7 +87,6 @@ export function OrbSurvey() {
                         question={currentQuestion.question}
                         options={currentQuestion.options}
                         onAnswer={handleAnswer}
-                        onDragStart={handleDragStart}
                     />
                 ) : (
                     <div className="animate-pop-in" style={{

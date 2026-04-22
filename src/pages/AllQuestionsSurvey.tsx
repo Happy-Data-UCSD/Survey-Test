@@ -19,16 +19,12 @@ export function AllQuestionsSurvey() {
     const [streak, setStreak] = useState(0)
     const [isDone, setIsDone] = useState(false)
 
-    const { playInteraction, playSuccess, playWhoosh } = useGamifiedSound()
-
-    const handleDragStart = useCallback(() => {
-        playInteraction()
-    }, [playInteraction])
+    const { playTap, playSelect, playButton, playType, playSwipe, playCelebration } = useGamifiedSound()
 
     const handleAnswer = useCallback((answer: string | null) => {
         if (!answer) return
 
-        playWhoosh()
+        playSwipe()
         setStreak(s => s + 1)
 
         setTimeout(() => {
@@ -36,10 +32,10 @@ export function AllQuestionsSurvey() {
                 setCurrentIndex(i => i + 1)
             } else {
                 setIsDone(true)
-                playSuccess()
+                playCelebration()
             }
         }, 600)
-    }, [currentIndex, playWhoosh, playSuccess])
+    }, [currentIndex, playSwipe, playCelebration])
 
     const currentQuestion = SURVEY_QUESTIONS[currentIndex]
 
@@ -78,6 +74,7 @@ export function AllQuestionsSurvey() {
                         questions={SURVEY_QUESTIONS}
                         currentIndex={isDone ? SURVEY_QUESTIONS.length - 1 : currentIndex}
                         onSelect={(index) => {
+                            playSwipe()
                             setCurrentIndex(index)
                             setIsDone(false)
                         }}
@@ -108,7 +105,6 @@ export function AllQuestionsSurvey() {
                                 question={currentQuestion.question}
                                 options={currentQuestion.options}
                                 onAnswer={handleAnswer}
-                                onDragStart={handleDragStart}
                             />
                         )}
                         {currentQuestion.type === 'vanilla-multiple-choice' && (
@@ -116,7 +112,7 @@ export function AllQuestionsSurvey() {
                                 question={currentQuestion.question}
                                 options={currentQuestion.options}
                                 onAnswer={handleAnswer}
-                                onInteraction={playInteraction}
+                                onInteraction={playSelect}
                             />
                         )}
                         {currentQuestion.type === 'likert' && (
@@ -124,7 +120,7 @@ export function AllQuestionsSurvey() {
                                 question={currentQuestion.question}
                                 options={currentQuestion.options}
                                 onAnswer={handleAnswer}
-                                onInteraction={playInteraction}
+                                onInteraction={playSelect}
                             />
                         )}
                         {currentQuestion.type === 'nps' && (
@@ -132,14 +128,16 @@ export function AllQuestionsSurvey() {
                                 question={currentQuestion.question}
                                 scale={currentQuestion.scale}
                                 onAnswer={handleAnswer}
-                                onInteraction={playInteraction}
+                                onInteraction={playSelect}
                             />
                         )}
                         {currentQuestion.type === 'open-ended' && (
                             <OpenEndedBox
                                 question={currentQuestion.question}
                                 onAnswer={handleAnswer}
-                                onInteraction={playInteraction}
+                                onInteraction={playButton}
+                                onFocus={playTap}
+                                onType={playType}
                             />
                         )}
                         {currentQuestion.type === 'matrix' && (
@@ -148,7 +146,7 @@ export function AllQuestionsSurvey() {
                                 rows={currentQuestion.rows}
                                 columns={currentQuestion.columns}
                                 onAnswer={(answers) => handleAnswer(JSON.stringify(answers))}
-                                onInteraction={playInteraction}
+                                onInteraction={playSelect}
                             />
                         )}
                         {currentQuestion.type === 'spatial-triage' && (
@@ -157,7 +155,6 @@ export function AllQuestionsSurvey() {
                                     question={currentQuestion.question}
                                     options={currentQuestion.options}
                                     onAnswer={handleAnswer}
-                                    onDragStart={handleDragStart}
                                 />
                             </div>
                         )}
@@ -166,7 +163,7 @@ export function AllQuestionsSurvey() {
                                 question={currentQuestion.question}
                                 options={currentQuestion.options}
                                 onAnswer={handleAnswer}
-                                onInteraction={playInteraction}
+                                onInteraction={playSelect}
                             />
                         )}
                         {currentQuestion.type === 'confidence-allocator' && (
@@ -174,7 +171,7 @@ export function AllQuestionsSurvey() {
                                 question={currentQuestion.question}
                                 options={currentQuestion.options}
                                 onAnswer={handleAnswer}
-                                onInteraction={playInteraction}
+                                onInteraction={playSelect}
                             />
                         )}
                     </div>

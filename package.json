@@ -20,9 +20,10 @@
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-router-dom": "^7.13.1",
+        "snd-lib": "^1.2.4",
         "tailwind-merge": "^2.5.2",
         "three": "^0.168.0",
-        "use-sound": "^4.0.3"
+        "tone": "^15.1.22"
     },
     "devDependencies": {
         "@types/react": "^18.3.5",

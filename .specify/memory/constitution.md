@@ -87,9 +87,9 @@ iteration without delivering measurable user value.
   additional animation library MUST be introduced.
 - **Gesture Handling**: `@use-gesture/react` exclusively — no additional gesture library MUST
   be added.
-- **Audio**: Native Web Audio API via `src/hooks/useGamifiedSound.ts` — no audio library
-  dependency MUST be introduced unless the Web Audio approach proves insufficient for a
-  specific, documented requirement.
+- **Audio**: [SND](https://snd.dev/) UI sounds (kit **01**, sine) via `snd-lib`, with short
+  Web Audio **synthesized fallbacks** in `src/hooks/useGamifiedSound.ts` if playback fails. No
+  second general-purpose audio library (e.g. howler) alongside this stack.
 - **Styling**: CSS custom properties defined in `src/index.css`; `tailwind-merge` and `clsx`
   are available for class composition. No CSS-in-JS runtime MUST be added.
 - Any new dependency MUST be evaluated against Principles IV and V before merging.
