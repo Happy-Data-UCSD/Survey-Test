@@ -9,7 +9,6 @@ interface SpatialTriageProps {
     question: string
     options: { topLeft: string; topRight: string; bottomLeft: string; bottomRight: string }
     onAnswer: (answer: string) => void
-    onDragStart?: () => void
     selectedAnswer?: string
     neoBrutal?: boolean
 }
@@ -43,7 +42,7 @@ function ZoneLabel({ label, active, selected, neoBrutal }: { label: string; acti
     )
 }
 
-export function SpatialTriage({ question, options, onAnswer, onDragStart, selectedAnswer, neoBrutal }: SpatialTriageProps) {
+export function SpatialTriage({ question, options, onAnswer, selectedAnswer, neoBrutal }: SpatialTriageProps) {
     const [activeZone, setActiveZone] = useState<Zone>(null)
     
     const getSelectedZone = (): Zone => {
@@ -84,7 +83,6 @@ export function SpatialTriage({ question, options, onAnswer, onDragStart, select
     const bind = useDrag(
         ({ down, movement: [dx, dy], first }) => {
             if (first) {
-                if (onDragStart) onDragStart()
                 setShowHint(false)
             }
 

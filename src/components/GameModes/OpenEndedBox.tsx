@@ -6,11 +6,15 @@ interface OpenEndedBoxProps {
     question: string
     onAnswer: (answer: string) => void
     onInteraction: () => void
+    /** When set, focus plays this instead of `onInteraction` (e.g. TAP vs BUTTON on confirm). */
+    onFocus?: () => void
+    /** Keystrokes in the textarea (SND TYPE). */
+    onType?: () => void
     selectedAnswer?: string
     neoBrutal?: boolean
 }
 
-export function OpenEndedBox({ question, onAnswer, onInteraction, selectedAnswer, neoBrutal }: OpenEndedBoxProps) {
+export function OpenEndedBox({ question, onAnswer, onInteraction, onFocus, onType, selectedAnswer, neoBrutal }: OpenEndedBoxProps) {
     const [text, setText] = useState(selectedAnswer || "")
     const [committed, setCommitted] = useState(false)
     const [focused, setFocused] = useState(false)
@@ -75,8 +79,11 @@ export function OpenEndedBox({ question, onAnswer, onInteraction, selectedAnswer
                 }}>
                     <textarea
                         value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        onFocus={() => { setFocused(true); onInteraction() }}
+                        onChange={(e) => {
+                            setText(e.target.value)
+                            onType?.()
+                        }}
+                        onFocus={() => { setFocused(true); (onFocus ?? onInteraction)() }}
                         onBlur={() => setFocused(false)}
                         placeholder="Type your answer here..."
                         style={{

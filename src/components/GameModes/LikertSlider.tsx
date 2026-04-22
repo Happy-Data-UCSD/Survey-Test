@@ -49,7 +49,6 @@ export function LikertSlider({ question, options, onAnswer, onInteraction, selec
 
             if (rawIndex !== selectedIndex) {
                 setSelectedIndex(rawIndex)
-                onInteraction?.()
             }
         }
     })

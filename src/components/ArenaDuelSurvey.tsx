@@ -29,7 +29,7 @@ const ADVANCE_DELAY = 700
 const ORB_LANE_WIDTH = 48
 
 export function ArenaDuelSurvey({ items = DEFAULT_ITEMS }: { items?: ArenaItem[] }) {
-    const { playInteraction, playWhoosh, playSuccess } = useGamifiedSound()
+    const { playSelect, playSwipe, playCelebration } = useGamifiedSound()
 
     const [round, setRound] = useState(0)
     const [bracket, setBracket] = useState<ArenaItem[][]>(() => [shuffle(items)])
@@ -97,7 +97,7 @@ export function ArenaDuelSurvey({ items = DEFAULT_ITEMS }: { items?: ArenaItem[]
                 : currentRoundItems.find(c => c.id === lastEntry.leftId)
             setRunnerUp(loserItem ?? null)
             setIsComplete(true)
-            playSuccess()
+            playCelebration()
         } else {
             setBracket(prev => [...prev, newWinners])
             setRound(r => r + 1)
@@ -106,11 +106,11 @@ export function ArenaDuelSurvey({ items = DEFAULT_ITEMS }: { items?: ArenaItem[]
             setIsTransitioning(false)
             setPairKey(k => k + 1)
         }
-    }, [matchupIndex, currentRoundItems, playSuccess])
+    }, [matchupIndex, currentRoundItems, playCelebration])
 
     const handleChoose = useCallback((side: 'left' | 'right') => {
         if (!pair || chosenSide || isTransitioning) return
-        playInteraction()
+        playSelect()
 
         const loserSide = side === 'left' ? 'right' : 'left'
         const winner = side === 'left' ? pair.left : pair.right
@@ -130,9 +130,9 @@ export function ArenaDuelSurvey({ items = DEFAULT_ITEMS }: { items?: ArenaItem[]
         const updatedLog = [...matchupLog, logEntry]
         setMatchupLog(updatedLog)
 
-        setTimeout(() => playWhoosh(), 100)
+        setTimeout(() => playSwipe(), 100)
         setTimeout(() => advance(updatedLog), ADVANCE_DELAY)
-    }, [pair, chosenSide, isTransitioning, round, matchupLog, playInteraction, playWhoosh, advance])
+    }, [pair, chosenSide, isTransitioning, round, matchupLog, playSelect, playSwipe, advance])
 
     useEffect(() => {
         function onKeyDown(e: KeyboardEvent) {

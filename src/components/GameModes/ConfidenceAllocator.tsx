@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, type KeyboardEvent } from 'react'
 import { motion } from 'framer-motion'
 import { NB } from '../../styles/neobrutal'
 
@@ -40,12 +40,19 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
     const isComplete = total === 100
 
     const handleChange = (index: number, value: number) => {
-        onInteraction?.()
         setAllocations(prev => {
             const next = [...prev]
             next[index] = roundTo10(value)
             return next
         })
+    }
+
+    const RANGE_ADJUST_KEYS = new Set([
+        'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown',
+    ])
+
+    const handleRangeCommitSound = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (RANGE_ADJUST_KEYS.has(e.key)) onInteraction?.()
     }
 
     const handleSubmit = () => {
@@ -133,6 +140,8 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                                 step={10}
                                 value={allocations[i]}
                                 onChange={(e) => handleChange(i, Number(e.target.value))}
+                                onPointerUp={() => onInteraction?.()}
+                                onKeyUp={handleRangeCommitSound}
                                 style={{
                                     width: '100%',
                                     accentColor: neoBrutal ? NB.green : 'var(--color-primary)',

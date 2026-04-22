@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle, ArrowLeft, ChevronLeft, ChevronRight, Send, Flame } from 'lucide-react'
-import useSound from 'use-sound'
 import { NB } from '../styles/neobrutal'
 import { SwipeCard } from '../components/GameModes/SwipeCard'
 import { MultipleChoice } from '../components/GameModes/MultipleChoice'
@@ -16,8 +15,6 @@ import { SurveyQuestion } from '../types/survey'
 import { NeoBrutalFloatingBackground } from '../components/NeoBrutalFloatingBackground'
 import { useGamifiedSound } from '../hooks/useGamifiedSound'
 import neoLogo from '../assets/neologo.svg'
-import fireWhooshUrl from '../assets/sounds/fire-whoosh.mp3'
-
 type SparkVec = { dx: number; dy: number; rotate: number; size: number }
 const SPARK_VECTORS: SparkVec[] = [
     { dx: -22, dy: -24, rotate: -25, size: 12 },
@@ -135,20 +132,21 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
     const [answers, setAnswers] = useState<Record<number, string>>({})
     const [burstKey, setBurstKey] = useState(0)
 
-    const { playSuccess, playWhoosh } = useGamifiedSound()
-    const [playFire] = useSound(fireWhooshUrl, { volume: 0.55, soundEnabled: neoBrutal })
+    const { playCelebration, playSwipe, playTap, playSelect, playButton, playType } = useGamifiedSound()
 
     const goBack = useCallback(() => {
         if (currentIndex > 0) {
+            playSwipe()
             setCurrentIndex(i => i - 1)
         }
-    }, [currentIndex])
+    }, [currentIndex, playSwipe])
 
     const goForward = useCallback(() => {
         if (currentIndex < DEMOGRAPHIC_QUESTIONS.length - 1) {
+            playSwipe()
             setCurrentIndex(i => i + 1)
         }
-    }, [currentIndex])
+    }, [currentIndex, playSwipe])
 
     const handleAnswer = useCallback((answer: string | null) => {
         if (!answer) return
@@ -159,9 +157,8 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
 
         if (neoBrutal) {
             setBurstKey(k => k + 1)
-            playSuccess()
-            playWhoosh()
-            try { playFire() } catch { /* missing mp3 — synth fallback covers it */ }
+            playCelebration()
+            playSwipe()
         }
 
         setTimeout(() => {
@@ -171,9 +168,10 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                 setIsOnSubmitPage(true)
             }
         }, 300)
-    }, [currentIndex, neoBrutal, playSuccess, playWhoosh, playFire])
+    }, [currentIndex, neoBrutal, playCelebration, playSwipe])
 
     const handleSubmit = useCallback(() => {
+        playButton()
         setIsSubmitting(true)
         const url = import.meta.env.VITE_GOOGLE_SHEETS_WEB_APP_URL
         if (url) {
@@ -194,11 +192,12 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                 setIsDone(true)
             }, 1000)
         }
-    }, [answers])
+    }, [answers, playButton])
 
     const goBackFromSubmit = useCallback(() => {
+        playSwipe()
         setIsOnSubmitPage(false)
-    }, [])
+    }, [playSwipe])
 
     const currentQuestion = DEMOGRAPHIC_QUESTIONS[currentIndex]
     const currentAnswer = answers[currentQuestion.id]
@@ -339,8 +338,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                 background: shellBg,
                 ...(neoBrutal ? { fontFamily: NB.font } : {}),
             }}>
-                {neoBrutal ? <NeoBrutalFloatingBackground variant="back" /> : null}
-                {neoBrutal ? <NeoBrutalFloatingBackground variant="front" /> : null}
+                {neoBrutal ? <NeoBrutalFloatingBackground /> : null}
                 <div style={{
                     position: 'relative',
                     zIndex: neoBrutal ? 1 : undefined,
@@ -397,7 +395,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                         question={currentQuestion.question}
                                         options={currentQuestion.options}
                                         onAnswer={handleAnswer}
-                                        onDragStart={() => {}}
+                                        onDragStart={playTap}
                                         selectedAnswer={currentAnswer}
                                         neoBrutal={neoBrutal}
                                     />
@@ -407,7 +405,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                         question={currentQuestion.question}
                                         options={currentQuestion.options}
                                         onAnswer={handleAnswer}
-                                        onInteraction={() => {}}
+                                        onInteraction={playSelect}
                                         selectedAnswer={currentAnswer}
                                         neoBrutal={neoBrutal}
                                     />
@@ -417,7 +415,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                         question={currentQuestion.question}
                                         options={currentQuestion.options}
                                         onAnswer={handleAnswer}
-                                        onInteraction={() => {}}
+                                        onInteraction={playSelect}
                                         selectedAnswer={currentAnswer}
                                         neoBrutal={neoBrutal}
                                     />
@@ -427,7 +425,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                         question={currentQuestion.question}
                                         scale={currentQuestion.scale}
                                         onAnswer={handleAnswer}
-                                        onInteraction={() => {}}
+                                        onInteraction={playSelect}
                                         selectedAnswer={currentAnswer}
                                         neoBrutal={neoBrutal}
                                     />
@@ -436,7 +434,9 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                     <OpenEndedBox
                                         question={currentQuestion.question}
                                         onAnswer={handleAnswer}
-                                        onInteraction={() => {}}
+                                        onInteraction={playButton}
+                                        onFocus={playTap}
+                                        onType={playType}
                                         selectedAnswer={currentAnswer}
                                         neoBrutal={neoBrutal}
                                     />
@@ -447,7 +447,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                         rows={currentQuestion.rows}
                                         columns={currentQuestion.columns}
                                         onAnswer={(answers) => handleAnswer(JSON.stringify(answers))}
-                                        onInteraction={() => {}}
+                                        onInteraction={playSelect}
                                         selectedAnswer={currentAnswer}
                                         neoBrutal={neoBrutal}
                                     />
@@ -458,7 +458,6 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                             question={currentQuestion.question}
                                             options={currentQuestion.options}
                                             onAnswer={handleAnswer}
-                                            onDragStart={() => {}}
                                             selectedAnswer={currentAnswer}
                                             neoBrutal={neoBrutal}
                                         />
@@ -469,7 +468,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                         question={currentQuestion.question}
                                         options={currentQuestion.options}
                                         onAnswer={handleAnswer}
-                                        onInteraction={() => {}}
+                                        onInteraction={playSelect}
                                         selectedAnswer={currentAnswer}
                                         neoBrutal={neoBrutal}
                                     />
@@ -479,7 +478,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                         question={currentQuestion.question}
                                         options={currentQuestion.options}
                                         onAnswer={handleAnswer}
-                                        onInteraction={() => {}}
+                                        onInteraction={playSelect}
                                         selectedAnswer={currentAnswer}
                                         neoBrutal={neoBrutal}
                                     />
