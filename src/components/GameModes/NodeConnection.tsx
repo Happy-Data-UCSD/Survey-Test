@@ -133,7 +133,12 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                 setHoveredIndex(null)
             }
         },
-        { triggerAllEvents: true, preventScroll: true, preventScrollAxis: 'xy' }
+        {
+            pointer: { capture: true },
+            triggerAllEvents: true,
+            preventScroll: true,
+            preventScrollAxis: 'xy',
+        }
     )
 
     const isDisabled = connectingIndex !== null

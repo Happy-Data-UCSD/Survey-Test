@@ -154,7 +154,16 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                 setActiveDir(dy > threshold ? 'down' : dy < -threshold ? 'up' : null)
             }
         } else {
-            const finalDir = activeDir
+            // Use movement on release, not React state — state can lag behind the last
+            // touchmove on mobile, so activeDir is sometimes still null on touchend.
+            const absX = Math.abs(dx)
+            const absY = Math.abs(dy)
+            let finalDir: Direction = null
+            if (absX > absY) {
+                finalDir = dx > threshold ? 'right' : dx < -threshold ? 'left' : null
+            } else {
+                finalDir = dy > threshold ? 'down' : dy < -threshold ? 'up' : null
+            }
             if (finalDir) {
                 mx.set(finalDir === 'left' ? -500 : finalDir === 'right' ? 500 : 0)
                 my.set(finalDir === 'up' ? -500 : finalDir === 'down' ? 500 : 0)
@@ -167,9 +176,15 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
             } else {
                 mx.set(0)
                 my.set(0)
+                setActiveDir(null)
             }
         }
-    }, { preventScroll: true, preventScrollAxis: 'xy', filterTaps: true })
+    }, {
+        pointer: { capture: true },
+        preventScroll: true,
+        preventScrollAxis: 'xy',
+        filterTaps: true,
+    })
 
     const cardNeo = neoBrutal
         ? {
