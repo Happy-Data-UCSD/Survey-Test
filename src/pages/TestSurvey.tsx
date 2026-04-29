@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle, ArrowLeft, ChevronLeft, ChevronRight, Send, Flame } from 'lucide-react'
+import { CheckCircle, CircleAlert, ArrowLeft, ChevronLeft, ChevronRight, Send, Flame } from 'lucide-react'
 import { NB } from '../styles/neobrutal'
 import { SwipeCard } from '../components/GameModes/SwipeCard'
 import { MultipleChoice } from '../components/GameModes/MultipleChoice'
@@ -152,12 +152,20 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
         if (!answer) return
 
         const questionId = DEMOGRAPHIC_QUESTIONS[currentIndex].id
+        const prior = answers[questionId]
+        const hadPriorAnswer = prior !== undefined && prior !== ''
+
         setAnswers(prev => ({ ...prev, [questionId]: answer }))
-        setStreak(s => s + 1)
+
+        if (!hadPriorAnswer) {
+            setStreak(s => s + 1)
+            if (neoBrutal) {
+                setBurstKey(k => k + 1)
+                playCelebration()
+            }
+        }
 
         if (neoBrutal) {
-            setBurstKey(k => k + 1)
-            playCelebration()
             playSwipe()
         }
 
@@ -168,7 +176,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                 setIsOnSubmitPage(true)
             }
         }, 300)
-    }, [currentIndex, neoBrutal, playCelebration, playSwipe])
+    }, [answers, currentIndex, neoBrutal, playCelebration, playSwipe])
 
     const handleSubmit = useCallback(() => {
         playButton()
@@ -199,11 +207,21 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
         setIsOnSubmitPage(false)
     }, [playSwipe])
 
+    const goToQuestionFromReview = useCallback((index: number) => {
+        playSwipe()
+        setCurrentIndex(index)
+        setIsOnSubmitPage(false)
+    }, [playSwipe])
+
     const currentQuestion = DEMOGRAPHIC_QUESTIONS[currentIndex]
     const currentAnswer = answers[currentQuestion.id]
     const headerProgress = ((currentIndex + 1) / DEMOGRAPHIC_QUESTIONS.length) * 100
 
     const shellBg = neoBrutal ? NB.pageBg : undefined
+    const isSpatialTriage = currentQuestion.type === 'spatial-triage'
+    const questionScrollClassName = isSpatialTriage
+        ? 'test-survey-question-scroll test-survey-question-scroll--fill'
+        : 'test-survey-question-scroll'
 
     return (
         <>
@@ -333,13 +351,15 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                 justifyContent: 'center',
                 height: '100%',
                 width: '100%',
+                minHeight: 0,
                 paddingTop: '64px',
-                paddingBottom: '80px',
                 background: shellBg,
                 ...(neoBrutal ? { fontFamily: NB.font } : {}),
             }}>
                 {neoBrutal ? <NeoBrutalFloatingBackground /> : null}
-                <div style={{
+                <div
+                    className={neoBrutal ? 'neo-brutal-on-bg' : undefined}
+                    style={{
                     position: 'relative',
                     zIndex: neoBrutal ? 1 : undefined,
                     display: 'flex',
@@ -348,46 +368,45 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                     width: '100%',
                     flex: 1,
                     minHeight: 0,
-                }}>
-                {neoBrutal && !isDone && !isOnSubmitPage && (
-                    <div style={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        paddingTop: 20,
-                        paddingBottom: 32,
-                        position: 'relative',
-                        zIndex: 2,
-                        flexShrink: 0,
-                    }}>
-                        <img
-                            key={`logo-${burstKey}`}
-                            src={neoLogo}
-                            alt="Neo"
-                            width={112}
-                            height={112}
-                            draggable={false}
-                            style={{
-                                display: 'block',
-                                transformOrigin: 'center',
-                                animation: burstKey > 0
-                                    ? 'nb-logo-burst 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                                    : 'nb-logo-idle 2.8s ease-in-out infinite',
-                                filter: 'drop-shadow(3px 3px 0 #000)',
-                                userSelect: 'none',
-                            }}
-                        />
-                    </div>
-                )}
+                }}
+                >
                 {!isDone && !isOnSubmitPage ? (
                     <>
-                        <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
+                        {!isSpatialTriage && (
+                            <div style={{ flex: 1, minHeight: 0, width: '100%' }} aria-hidden />
+                        )}
+                        {neoBrutal && (
+                            <div className="test-survey-neo-logo-wrap">
+                                <img
+                                    key={`logo-${burstKey}`}
+                                    className="test-survey-neo-logo"
+                                    src={neoLogo}
+                                    alt="Neo"
+                                    width={112}
+                                    height={112}
+                                    draggable={false}
+                                    style={{
+                                        animation: burstKey > 0
+                                            ? 'nb-logo-burst 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                                            : 'nb-logo-idle 2.8s ease-in-out infinite',
+                                    }}
+                                />
+                            </div>
+                        )}
+                        <div className={questionScrollClassName}>
                             <div
                                 key={currentQuestion.id}
                                 style={
-                                    currentQuestion.type === 'spatial-triage'
+                                    isSpatialTriage
                                         ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%', alignSelf: 'stretch' }
-                                        : undefined
+                                        : {
+                                              width: '100%',
+                                              alignSelf: 'stretch',
+                                              boxSizing: 'border-box',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              alignItems: 'center',
+                                          }
                                 }
                             >
                                 {currentQuestion.type === 'multiple-choice' && (
@@ -485,15 +504,24 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                 )}
                             </div>
                         </div>
+                        {!isSpatialTriage && (
+                            <div style={{ flex: 1, minHeight: 0, width: '100%' }} aria-hidden />
+                        )}
 
-                        <div style={{
-                            height: '80px',
+                        <div
+                            className="test-survey-bottom-nav"
+                            style={{
+                            flexShrink: 0,
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
                             gap: '16px',
                             width: '100%',
-                        }}>
+                            minHeight: 72,
+                            paddingTop: 8,
+                            paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+                        }}
+                        >
                             <button
                                 onClick={goBack}
                                 disabled={currentIndex === 0}
@@ -569,13 +597,21 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                         </div>
                     </>
                 ) : isOnSubmitPage ? (
+                    <div style={{
+                        flex: 1,
+                        width: '100%',
+                        minHeight: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
                     <div className="animate-pop-in" style={{
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '20px',
-                        padding: '32px 24px',
-                        borderRadius: '20px',
+                        gap: '24px',
+                        padding: '40px 32px',
+                        borderRadius: '22px',
                         ...(neoBrutal ? {
                             border: NB.border,
                             boxShadow: NB.shadow,
@@ -586,23 +622,24 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                             borderBottom: '4px solid var(--color-border-dark)',
                             background: 'white',
                         }),
-                        width: '340px',
-                        maxHeight: '70vh',
+                        width: '400px',
+                        maxWidth: 'calc(100% - 24px)',
+                        maxHeight: 'min(78dvh, calc(100dvh - 64px - 96px - 24px))',
                         textAlign: 'center',
                     }}>
                         <div>
                             <p style={{
-                                fontSize: '0.65rem',
+                                fontSize: '0.7rem',
                                 fontWeight: '800',
                                 color: neoBrutal ? NB.black : 'var(--color-text-muted)',
                                 letterSpacing: '0.1em',
                                 textTransform: 'uppercase',
-                                marginBottom: '4px',
+                                marginBottom: '6px',
                             }}>
                                 Ready to Submit
                             </p>
                             <p style={{
-                                fontSize: '1.3rem',
+                                fontSize: '1.45rem',
                                 fontWeight: '900',
                                 color: neoBrutal ? NB.black : 'var(--color-text)',
                             }}>
@@ -612,7 +649,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
 
                         <div style={{
                             width: '100%',
-                            maxHeight: '300px',
+                            maxHeight: '360px',
                             overflowY: 'auto',
                             display: 'flex',
                             flexDirection: 'column',
@@ -621,9 +658,14 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                         }}>
                             {DEMOGRAPHIC_QUESTIONS.map((q, idx) => {
                                 const answer = answers[q.id]
+                                const isAnswered = Boolean(answer)
                                 const renderAnswer = () => {
                                     if (!answer) {
-                                        return <span style={{ fontStyle: 'italic', color: neoBrutal ? 'rgba(0,0,0,0.45)' : 'var(--color-text-muted)' }}>Skipped</span>
+                                        return (
+                                            <span style={{ fontStyle: 'italic', color: neoBrutal ? 'rgba(0,0,0,0.45)' : 'var(--color-text-muted)', fontWeight: 500 }}>
+                                                Tap to answer
+                                            </span>
+                                        )
                                     }
                                     if (q.type === 'matrix' || q.type === 'confidence-allocator') {
                                         try {
@@ -655,39 +697,71 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                     return answer
                                 }
                                 return (
-                                    <div key={q.id} style={{
-                                        textAlign: 'left',
-                                        padding: '12px',
-                                        borderRadius: '12px',
-                                        background: neoBrutal ? '#fff' : 'var(--color-surface)',
-                                        border: neoBrutal ? `2px solid ${NB.black}` : '1px solid var(--color-border)',
-                                        boxShadow: neoBrutal ? NB.shadowSm : undefined,
-                                    }}>
-                                        <p style={{
-                                            fontSize: '0.7rem',
-                                            fontWeight: '800',
-                                            color: neoBrutal ? NB.black : 'var(--color-text-muted)',
-                                            marginBottom: '4px',
-                                        }}>
-                                            Q{idx + 1}
-                                        </p>
-                                        <p style={{
-                                            fontSize: '0.85rem',
-                                            fontWeight: '600',
-                                            color: neoBrutal ? NB.black : 'var(--color-text)',
-                                            marginBottom: '6px',
-                                            lineHeight: '1.3',
-                                        }}>
-                                            {q.question}
-                                        </p>
-                                        <div style={{
-                                            fontSize: '0.8rem',
-                                            color: neoBrutal ? NB.green : 'var(--color-primary)',
-                                            fontWeight: '600',
-                                        }}>
-                                            {renderAnswer()}
+                                    <button
+                                        type="button"
+                                        key={q.id}
+                                        onClick={() => goToQuestionFromReview(idx)}
+                                        style={{
+                                            textAlign: 'left',
+                                            width: '100%',
+                                            padding: '12px',
+                                            borderRadius: '12px',
+                                            cursor: 'pointer',
+                                            font: 'inherit',
+                                            background: neoBrutal
+                                                ? (isAnswered ? '#fff' : '#fff8f0')
+                                                : (isAnswered ? 'var(--color-surface)' : 'rgba(251, 191, 36, 0.12)'),
+                                            border: neoBrutal
+                                                ? `2px solid ${isAnswered ? NB.black : '#d97706'}`
+                                                : `1px solid ${isAnswered ? 'var(--color-border)' : 'rgba(217, 119, 6, 0.45)'}`,
+                                            boxShadow: neoBrutal ? NB.shadowSm : undefined,
+                                            transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                                            <span style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden>
+                                                {isAnswered ? (
+                                                    <CheckCircle
+                                                        size={18}
+                                                        color={neoBrutal ? NB.green : 'var(--color-primary)'}
+                                                        strokeWidth={neoBrutal ? 2.5 : 2}
+                                                    />
+                                                ) : (
+                                                    <CircleAlert
+                                                        size={18}
+                                                        color={neoBrutal ? '#d97706' : '#d97706'}
+                                                        strokeWidth={neoBrutal ? 2.5 : 2}
+                                                    />
+                                                )}
+                                            </span>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <p style={{
+                                                    fontSize: '0.7rem',
+                                                    fontWeight: '800',
+                                                    color: neoBrutal ? NB.black : 'var(--color-text-muted)',
+                                                    marginBottom: '4px',
+                                                }}>
+                                                    Q{idx + 1}{isAnswered ? '' : ' · Skipped'}
+                                                </p>
+                                                <p style={{
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: '600',
+                                                    color: neoBrutal ? NB.black : 'var(--color-text)',
+                                                    marginBottom: '6px',
+                                                    lineHeight: '1.3',
+                                                }}>
+                                                    {q.question}
+                                                </p>
+                                                <div style={{
+                                                    fontSize: '0.8rem',
+                                                    color: neoBrutal ? NB.green : 'var(--color-primary)',
+                                                    fontWeight: '600',
+                                                }}>
+                                                    {renderAnswer()}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </button>
                                 )
                             })}
                         </div>
@@ -767,7 +841,16 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                             </button>
                         </div>
                     </div>
+                    </div>
                 ) : (
+                    <div style={{
+                        flex: 1,
+                        width: '100%',
+                        minHeight: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
                     <div className="animate-pop-in" style={{
                         display: 'flex',
                         flexDirection: 'column',
@@ -828,6 +911,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                         >
                             Back to Surveys
                         </Link>
+                    </div>
                     </div>
                 )}
                 </div>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useLayoutEffect, useEffect, useMemo } from 'react'
 import { motion, useMotionValue, useTransform } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { NB } from '../../styles/neobrutal'
@@ -27,12 +27,41 @@ export function LikertSlider({ question, options, onAnswer, onInteraction, selec
     const initialIndex = getInitialIndex()
     const [selectedIndex, setSelectedIndex] = useState<number | null>(initialIndex)
 
-    const trackWidth = 260
     const thumbWidth = 40
-    const dragLimit = trackWidth - thumbWidth
-    const initialX = (initialIndex / (options.length - 1)) * dragLimit
+    const shellRef = useRef<HTMLDivElement>(null)
+    const [trackWidth, setTrackWidth] = useState(260)
 
-    const x = useMotionValue(initialX)
+    useLayoutEffect(() => {
+        const el = shellRef.current
+        if (!el) return
+        const measure = () => {
+            const w = el.offsetWidth
+            const inner = Math.max(160, Math.min(260, w - 40))
+            setTrackWidth(inner)
+        }
+        measure()
+        const ro = new ResizeObserver(measure)
+        ro.observe(el)
+        return () => ro.disconnect()
+    }, [])
+
+    const dragLimit = useMemo(() => trackWidth - thumbWidth, [trackWidth, thumbWidth])
+    const selectedIndexRef = useRef(selectedIndex)
+    selectedIndexRef.current = selectedIndex
+
+    const x = useMotionValue(
+        options.length < 2
+            ? 0
+            : (initialIndex / (options.length - 1)) * Math.max(0, 260 - thumbWidth)
+    )
+
+    useEffect(() => {
+        const lim = dragLimit
+        if (lim <= 0 || options.length < 2) return
+        const idx = selectedIndexRef.current ?? middleIndex
+        const seg = lim / (options.length - 1)
+        x.set(Math.min(lim, Math.max(0, idx * seg)))
+    }, [dragLimit, options.length, middleIndex, trackWidth, x])
 
     // Visuals tied to drag
     const fillEnd = neoBrutal ? NB.green : 'var(--color-primary)'
@@ -98,8 +127,13 @@ export function LikertSlider({ question, options, onAnswer, onInteraction, selec
         }
 
     return (
-        <div style={{ position: 'relative', width: '300px', ...(neoBrutal ? { fontFamily: NB.font } : {}) }} className="animate-pop-in">
+        <div
+            ref={shellRef}
+            style={{ position: 'relative', width: '100%', maxWidth: '300px', ...(neoBrutal ? { fontFamily: NB.font } : {}) }}
+            className="animate-pop-in"
+        >
             <motion.div
+                className="game-mode-card-shell"
                 style={{
                     ...shell,
                     padding: '28px 20px',
@@ -111,13 +145,16 @@ export function LikertSlider({ question, options, onAnswer, onInteraction, selec
             >
                 {/* Question */}
                 <div style={{ textAlign: 'center' }}>
-                    <h2 style={{
+                    <h2
+                        className="game-mode-question-title"
+                        style={{
                         fontSize: '1.25rem',
                         fontWeight: '800',
                         lineHeight: 1.35,
                         color: neoBrutal ? NB.black : 'var(--color-text)',
                         marginBottom: '8px',
-                    }}>
+                    }}
+                    >
                         {question}
                     </h2>
                     <p style={{
@@ -228,13 +265,16 @@ export function LikertSlider({ question, options, onAnswer, onInteraction, selec
                 </div>
 
                 {/* Labels for first and last options */}
-                <div style={{
+                <div
+                    className="likert-endcap-labels"
+                    style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     marginTop: '-8px',
                     paddingLeft: '4px',
                     paddingRight: '4px',
-                }}>
+                }}
+                >
                     <span style={{
                         fontSize: '0.6rem',
                         fontWeight: neoBrutal ? 800 : '600',

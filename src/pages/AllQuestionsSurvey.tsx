@@ -97,7 +97,14 @@ export function AllQuestionsSurvey() {
                         style={
                             currentQuestion.type === 'spatial-triage'
                                 ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%', alignSelf: 'stretch' }
-                                : undefined
+                                : {
+                                      width: '100%',
+                                      alignSelf: 'stretch',
+                                      boxSizing: 'border-box',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                  }
                         }
                     >
                         {currentQuestion.type === 'multiple-choice' && (

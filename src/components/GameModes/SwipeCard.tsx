@@ -1,4 +1,4 @@
-import { useState, type PointerEvent, type MouseEvent, type TouchEvent } from 'react'
+import { useState, useEffect, type PointerEvent, type MouseEvent, type TouchEvent } from 'react'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { NB } from '../../styles/neobrutal'
@@ -50,12 +50,14 @@ function NBOptionButton({
     active,
     selected,
     onSelect,
+    size = 82,
 }: {
     dir: 'up' | 'down' | 'left' | 'right'
     label: string
     active: boolean
     selected: boolean
     onSelect: () => void
+    size?: number
 }) {
     const highlighted = active || selected
     const stopDragStart = (e: PointerEvent | MouseEvent | TouchEvent) => {
@@ -74,8 +76,8 @@ function NBOptionButton({
                 onSelect()
             }}
             style={{
-                width: 82,
-                height: 82,
+                width: size,
+                height: size,
                 border: NB.border,
                 borderRadius: 14,
                 background: selected ? NB.green : NB.yellow,
@@ -95,7 +97,15 @@ function NBOptionButton({
                 touchAction: 'manipulation',
             }}
         >
-            <span style={{ fontSize: '1.7rem', lineHeight: 1, fontWeight: 900 }}>{ARROWS[dir]}</span>
+            <span style={{
+                fontSize: '1.7rem',
+                lineHeight: 1,
+                fontWeight: 900,
+                textShadow: NB.textReadabilityShadow,
+            }}
+            >
+                {ARROWS[dir]}
+            </span>
             <span
                 style={{
                     fontSize: '0.68rem',
@@ -104,6 +114,7 @@ function NBOptionButton({
                     textAlign: 'center',
                     padding: '0 2px',
                     wordBreak: 'break-word',
+                    textShadow: NB.textReadabilityShadow,
                 }}
             >
                 {label}
@@ -114,12 +125,22 @@ function NBOptionButton({
 
 export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAnswer, neoBrutal }: SwipeCardProps) {
     const [activeDir, setActiveDir] = useState<Direction>(null)
+    const [compactUi, setCompactUi] = useState(false)
+
+    useEffect(() => {
+        const mq = window.matchMedia('(max-height: 640px), (max-width: 360px)')
+        const apply = () => setCompactUi(mq.matches)
+        apply()
+        mq.addEventListener('change', apply)
+        return () => mq.removeEventListener('change', apply)
+    }, [])
+
+    const neoBtnSize = compactUi ? 72 : 82
+    const threshold = compactUi ? 42 : 50
 
     const mx = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
     const my = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
     const rotate = useTransform(mx, [-200, 200], [-12, 12])
-
-    const threshold = 50
 
     const bind = useDrag(({ down, movement: [dx, dy], first }) => {
         if (first && onDragStart) onDragStart()
@@ -167,7 +188,17 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
         }
 
     return (
-        <div style={{ position: 'relative', width: '320px', height: '440px', ...neoBrutal ? { fontFamily: NB.font } : {} }} className="animate-pop-in">
+        <div style={{
+            position: 'relative',
+            /* Prefer 320px intrinsic width so flex parents with align-items:center don't shrink-to-fit to ~0 when all inner layout is position:absolute (non-neo). */
+            width: '320px',
+            maxWidth: '100%',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            height: 'clamp(280px, 50dvh, 440px)',
+            maxHeight: 'min(440px, 58dvh)',
+            ...(neoBrutal ? { fontFamily: NB.font } : {}),
+        }} className="animate-pop-in">
             <motion.div
                 {...(bind() as any)}
                 style={{
@@ -226,9 +257,9 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                         }}>
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(3, 82px)',
-                                gridTemplateRows: 'repeat(3, 82px)',
-                                gap: 10,
+                                gridTemplateColumns: `repeat(3, ${neoBtnSize}px)`,
+                                gridTemplateRows: `repeat(3, ${neoBtnSize}px)`,
+                                gap: compactUi ? 8 : 10,
                             }}>
                                 <span />
                                 <NBOptionButton
@@ -237,6 +268,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                                     active={activeDir === 'up'}
                                     selected={selectedAnswer === options.up}
                                     onSelect={() => onAnswer(options.up)}
+                                    size={neoBtnSize}
                                 />
                                 <span />
                                 <NBOptionButton
@@ -245,6 +277,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                                     active={activeDir === 'left'}
                                     selected={selectedAnswer === options.left}
                                     onSelect={() => onAnswer(options.left)}
+                                    size={neoBtnSize}
                                 />
                                 <span />
                                 <NBOptionButton
@@ -253,6 +286,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                                     active={activeDir === 'right'}
                                     selected={selectedAnswer === options.right}
                                     onSelect={() => onAnswer(options.right)}
+                                    size={neoBtnSize}
                                 />
                                 <span />
                                 <NBOptionButton
@@ -261,6 +295,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                                     active={activeDir === 'down'}
                                     selected={selectedAnswer === options.down}
                                     onSelect={() => onAnswer(options.down)}
+                                    size={neoBtnSize}
                                 />
                                 <span />
                             </div>

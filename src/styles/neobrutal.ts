@@ -11,6 +11,8 @@ export const NB = {
     shadowSm: '3px 3px 0 0 #000000',
     border: '3px solid #000000',
     font: "'Lexend', sans-serif",
+    /** Inline styles; layers defined once on :root as --nb-text-readability-shadow */
+    textReadabilityShadow: 'var(--nb-text-readability-shadow)',
 } as const
 
 export function nbFont(neo: boolean | undefined): CSSProperties {

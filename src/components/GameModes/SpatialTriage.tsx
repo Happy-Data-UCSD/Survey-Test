@@ -80,6 +80,15 @@ export function SpatialTriage({ question, options, onAnswer, selectedAnswer, neo
         }
     }, [])
 
+    const zonePad =
+        dimensions.width > 0
+            ? Math.min(28, Math.max(14, Math.round(dimensions.width * 0.07)))
+            : 28
+    const dragCardWidth =
+        dimensions.width > 0
+            ? Math.min(260, Math.max(180, Math.round(dimensions.width * 0.72)))
+            : 260
+
     const bind = useDrag(
         ({ down, movement: [dx, dy], first }) => {
             if (first) {
@@ -155,7 +164,7 @@ export function SpatialTriage({ question, options, onAnswer, selectedAnswer, neo
                             display: 'flex',
                             alignItems: zone.startsWith('bottom') ? 'flex-end' : 'flex-start',
                             justifyContent: zone.endsWith('Right') ? 'flex-end' : 'flex-start',
-                            padding: '28px',
+                            padding: zonePad,
                             background: neoBrutal
                                 ? (highlighted ? NB.yellow : NB.pageBg)
                                 : (highlighted ? 'rgba(100, 116, 139, 0.12)' : 'rgba(0,0,0,0.02)'),
@@ -185,7 +194,8 @@ export function SpatialTriage({ question, options, onAnswer, selectedAnswer, neo
                     style={{
                         x: mx,
                         y: my,
-                        width: '260px',
+                        width: dragCardWidth,
+                        maxWidth: 'min(260px, calc(100% - 24px))',
                         ...(neoBrutal
                             ? {
                                 background: NB.cardBg,

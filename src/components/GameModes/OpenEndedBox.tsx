@@ -43,8 +43,9 @@ export function OpenEndedBox({ question, onAnswer, onInteraction, onFocus, onTyp
         }
 
     return (
-        <div style={{ position: 'relative', width: '320px' }} className="animate-pop-in">
+        <div style={{ position: 'relative', width: '100%', maxWidth: '320px' }} className="animate-pop-in">
             <motion.div
+                className="game-mode-card-shell"
                 style={{
                     ...shell,
                     padding: '24px 20px',
@@ -55,13 +56,16 @@ export function OpenEndedBox({ question, onAnswer, onInteraction, onFocus, onTyp
                 }}
             >
                 {/* Question */}
-                <h2 style={{
+                <h2
+                    className="game-mode-question-title"
+                    style={{
                     fontSize: '1.2rem',
                     fontWeight: '800',
                     lineHeight: 1.35,
                     color: neoBrutal ? NB.black : 'var(--color-text)',
                     textAlign: 'center'
-                }}>
+                }}
+                >
                     {question}
                 </h2>
 

@@ -79,8 +79,9 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
         }
 
     return (
-        <div style={{ position: 'relative', width: '320px' }} className="animate-pop-in">
+        <div style={{ position: 'relative', width: '100%', maxWidth: '320px' }} className="animate-pop-in">
             <motion.div
+                className="game-mode-card-shell"
                 style={{
                     ...shell,
                     padding: '28px 20px',
@@ -91,13 +92,16 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                 }}
             >
                 <div style={{ textAlign: 'center' }}>
-                    <h2 style={{
+                    <h2
+                        className="game-mode-question-title"
+                        style={{
                         fontSize: '1.25rem',
                         fontWeight: '800',
                         lineHeight: 1.35,
                         color: neoBrutal ? NB.black : 'var(--color-text)',
                         marginBottom: '8px',
-                    }}>
+                    }}
+                    >
                         {question}
                     </h2>
                     <p style={{

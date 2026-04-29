@@ -56,7 +56,7 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
         }
 
     return (
-        <div style={{ position: 'relative', width: '380px' }} className="animate-pop-in">
+        <div style={{ position: 'relative', width: '100%', maxWidth: '380px' }} className="animate-pop-in">
             <motion.div
                 style={{
                     ...shell,
@@ -82,7 +82,7 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
                 <div style={{ width: '100%', overflowX: 'auto' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {/* Header Row (Columns) */}
-                        <div style={{ display: 'flex', paddingLeft: '92px', gap: '8px' }}>
+                        <div className="matrix-grid-header-offset" style={{ display: 'flex', paddingLeft: '92px', gap: '8px' }}>
                             {columns.map(col => (
                                 <div key={col} style={{
                                     flex: 1,
@@ -110,7 +110,7 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
                                 borderRadius: '12px'
                             }}>
                                 {/* Row Label */}
-                                <div style={{
+                                <div className="matrix-grid-row-label" style={{
                                     width: '84px',
                                     fontSize: '0.75rem',
                                     fontWeight: '700',

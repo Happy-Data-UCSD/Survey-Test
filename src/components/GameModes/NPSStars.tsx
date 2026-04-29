@@ -53,8 +53,9 @@ export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAns
         }
 
     return (
-        <div style={{ position: 'relative', width: isLargeScale ? '100%' : '300px', maxWidth: isLargeScale ? '420px' : '300px' }} className="animate-pop-in">
+        <div style={{ position: 'relative', width: '100%', maxWidth: isLargeScale ? '420px' : '300px' }} className="animate-pop-in">
             <motion.div
+                className="game-mode-card-shell"
                 style={{
                     ...shell,
                     padding: '28px 20px',
@@ -66,13 +67,16 @@ export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAns
             >
                 {/* Question */}
                 <div style={{ textAlign: 'center' }}>
-                    <h2 style={{
+                    <h2
+                        className="game-mode-question-title"
+                        style={{
                         fontSize: '1.2rem',
                         fontWeight: '800',
                         lineHeight: 1.35,
                         color: neoBrutal ? NB.black : 'var(--color-text)',
                         marginBottom: '8px',
-                    }}>
+                    }}
+                    >
                         {question}
                     </h2>
                     <p style={{
@@ -193,13 +197,16 @@ export function NPSStars({ question, scale, onAnswer, onInteraction, selectedAns
 
                 {/* Labels for NPS */}
                 {isLargeScale && (
-                    <div style={{
+                    <div
+                        className="nps-scale-endcaps"
+                        style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         width: '100%',
                         padding: neoBrutal ? '0 2px' : '0 4px',
                         boxSizing: 'border-box',
-                    }}>
+                    }}
+                    >
                         <span style={{ fontSize: '0.65rem', fontWeight: '800', color: neoBrutal ? NB.black : 'var(--color-text-muted)', textTransform: 'uppercase' }}>Not likely</span>
                         <span style={{ fontSize: '0.65rem', fontWeight: '800', color: neoBrutal ? NB.black : 'var(--color-text-muted)', textTransform: 'uppercase' }}>Very likely</span>
                     </div>

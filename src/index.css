@@ -23,12 +23,25 @@
   --radius-xl: 20px;
   --radius-lg: 16px;
   --radius-md: 12px;
+
+  /* Neo-brutal: white rim so black Lexend reads over page bg + floating shapes (see .neo-brutal-on-bg) */
+  --nb-text-readability-shadow:
+    1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff,
+    1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
+
+  /* Game modes — tighter padding/title applied via @container game in blocks below */
+  --game-shell-pad-y: 28px;
+  --game-shell-pad-x: 20px;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html {
+  height: 100%;
 }
 
 body {
@@ -41,19 +54,135 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100%;
   width: 100vw;
 }
 
 #root {
   width: 100%;
   height: 100%;
+  min-height: 0;
   max-width: 430px;
   position: relative;
   background: transparent;
   box-shadow: 0 0 48px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
+  padding-left: max(0px, env(safe-area-inset-left));
+  padding-right: max(0px, env(safe-area-inset-right));
+}
+
+/* Test Survey: scrollable question band + responsive neo logo */
+.test-survey-question-scroll {
+  container-name: game;
+  container-type: inline-size;
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+  max-height: min(84dvh, 100%);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Inset so card border/shadow and primary actions aren’t clipped at the scroll edge */
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+/* Full-height modes (e.g. spatial triage): consume space between header and nav */
+.test-survey-question-scroll--fill {
+  flex: 1 1 0;
+  max-height: none;
+}
+
+/* Matrix: narrower row gutter + label on small question column */
+@container game (max-width: 360px) {
+  .matrix-grid-header-offset {
+    padding-left: 76px !important;
+  }
+
+  .matrix-grid-row-label {
+    width: 68px !important;
+    font-size: 0.68rem !important;
+  }
+}
+
+/* Likert / open-ended / allocator card padding on narrow column */
+@container game (max-width: 340px) {
+  .game-mode-card-shell {
+    padding: clamp(18px, 5cqh, 26px) clamp(14px, 4cqw, 20px) !important;
+    gap: clamp(14px, 4cqw, 22px) !important;
+  }
+
+  .game-mode-question-title {
+    font-size: clamp(1rem, 3cqw + 0.65rem, 1.2rem) !important;
+  }
+}
+
+/* Test Survey neo mode: headings & question copy on page bg (+ submit / complete flows inside same shell) */
+.neo-brutal-on-bg :is(h1, h2, h3, h4, p, label) {
+  text-shadow: var(--nb-text-readability-shadow);
+}
+
+.neo-brutal-on-bg .test-survey-bottom-nav > span,
+.neo-brutal-on-bg .nps-scale-endcaps span,
+.neo-brutal-on-bg .likert-endcap-labels span {
+  text-shadow: var(--nb-text-readability-shadow);
+}
+
+.test-survey-neo-logo-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-top: 12px;
+  padding-bottom: 16px;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.test-survey-neo-logo {
+  display: block;
+  width: 112px;
+  height: 112px;
+  transform-origin: center;
+  filter: drop-shadow(3px 3px 0 #000);
+  user-select: none;
+}
+
+@media (max-height: 700px) {
+  .test-survey-neo-logo-wrap {
+    padding-top: 12px;
+    padding-bottom: 16px;
+  }
+
+  .test-survey-neo-logo {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@media (max-height: 580px) {
+  .test-survey-neo-logo-wrap {
+    padding-top: 8px;
+    padding-bottom: 10px;
+  }
+
+  .test-survey-neo-logo {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (max-height: 520px) {
+  .test-survey-neo-logo-wrap {
+    display: none;
+  }
 }
 
 /* Navigation bar */

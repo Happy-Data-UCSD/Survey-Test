@@ -26,6 +26,7 @@ export function MultipleChoice({ question, options, onAnswer, onInteraction, sel
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 20,
+                width: '100%',
                 maxWidth: 360,
                 ...(neoBrutal ? { fontFamily: NB.font } : {}),
             }}

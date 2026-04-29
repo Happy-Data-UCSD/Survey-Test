@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { Move } from 'lucide-react'
@@ -41,18 +41,38 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
     const [showHint, setShowHint] = useState(true)
     const [releaseMissed, setReleaseMissed] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
-    
+    const layoutWrapperRef = useRef<HTMLDivElement>(null)
+    const [layoutSize, setLayoutSize] = useState(400)
+
     const selectedIndex = selectedAnswer ? options.indexOf(selectedAnswer) : -1
 
-    const size = 400
-    const cx = size / 2
-    const cy = size / 2
-    const radius = 175
-    const positions = placeOnCircle(options.length, radius, cx, cy)
-    const nodeRadius = 50
-    const nodeWidth = 110
-    const nodeHeight = 90
-    const centerNodeSize = 64
+    const BASE = 400
+
+    useLayoutEffect(() => {
+        const el = layoutWrapperRef.current
+        if (!el) return
+        const update = () => {
+            const raw = el.getBoundingClientRect().width
+            const w = Math.floor(raw)
+            setLayoutSize(w > 0 ? Math.min(BASE, Math.max(260, w)) : BASE)
+        }
+        update()
+        const ro = new ResizeObserver(update)
+        ro.observe(el)
+        return () => ro.disconnect()
+    }, [])
+
+    const cx = layoutSize / 2
+    const cy = layoutSize / 2
+    const radius = (175 / BASE) * layoutSize
+    const positions = useMemo(
+        () => placeOnCircle(options.length, radius, cx, cy),
+        [options.length, radius, cx, cy]
+    )
+    const nodeRadius = (50 / BASE) * layoutSize
+    const nodeWidth = (110 / BASE) * layoutSize
+    const nodeHeight = (90 / BASE) * layoutSize
+    const centerNodeSize = (64 / BASE) * layoutSize
 
     const confirmSelection = useCallback((index: number) => {
         setConnectingIndex(index)
@@ -123,11 +143,13 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
 
     return (
         <div
+            ref={layoutWrapperRef}
             style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 20,
+                width: '100%',
                 maxWidth: 420,
                 overflow: 'visible',
                 ...(neoBrutal ? { fontFamily: NB.font } : {}),
@@ -151,8 +173,9 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                 ref={containerRef}
                 style={{
                     position: 'relative',
-                    width: size,
-                    height: size,
+                    width: layoutSize,
+                    height: layoutSize,
+                    maxWidth: '100%',
                 }}
             >
                 <svg
@@ -161,8 +184,8 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                         inset: 0,
                         pointerEvents: 'none',
                     }}
-                    width={size}
-                    height={size}
+                    width={layoutSize}
+                    height={layoutSize}
                 >
                     {connectingIndex === null && !dragEnd && positions.map((p, i) => (
                         <line
