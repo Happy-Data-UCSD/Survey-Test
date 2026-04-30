@@ -221,6 +221,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
 
     const shellBg = neoBrutal ? NB.pageBg : undefined
     const isSpatialTriage = currentQuestion.type === 'spatial-triage'
+    const isConfidenceAllocator = currentQuestion.type === 'confidence-allocator'
 
     return (
         <>
@@ -414,7 +415,10 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                 {!isDone && !isOnSubmitPage ? (
                     <>
                         {neoBrutal && (
-                            <div className="test-survey-neo-logo-wrap">
+                            <div
+                                className="test-survey-neo-logo-wrap"
+                                style={isConfidenceAllocator ? { paddingTop: 6, paddingBottom: 10 } : undefined}
+                            >
                                 <img
                                     key={`logo-${burstKey}`}
                                     className="test-survey-neo-logo"
@@ -424,6 +428,8 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                     height={112}
                                     draggable={false}
                                     style={{
+                                        width: isConfidenceAllocator ? 92 : undefined,
+                                        height: isConfidenceAllocator ? 92 : undefined,
                                         animation: burstKey > 0
                                             ? 'nb-logo-burst 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)'
                                             : 'nb-logo-idle 2.8s ease-in-out infinite',
@@ -440,9 +446,11 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
-                                    justifyContent: 'center',
+                                    justifyContent: currentQuestion.type === 'confidence-allocator' ? 'flex-start' : 'center',
                                     ...(
-                                        isSpatialTriage || currentQuestion.type === 'node-connection'
+                                        isSpatialTriage
+                                        || currentQuestion.type === 'node-connection'
+                                        || currentQuestion.type === 'confidence-allocator'
                                             ? { flex: 1, minHeight: 0, alignSelf: 'stretch' }
                                             : {}
                                     ),
@@ -545,14 +553,27 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                     </div>
                                 )}
                                 {currentQuestion.type === 'confidence-allocator' && (
-                                    <ConfidenceAllocator
-                                        question={currentQuestion.question}
-                                        options={currentQuestion.options}
-                                        onAnswer={handleAnswer}
-                                        onInteraction={playSelect}
-                                        selectedAnswer={currentAnswer}
-                                        neoBrutal={neoBrutal}
-                                    />
+                                    <div
+                                        style={{
+                                            flex: 1,
+                                            width: '100%',
+                                            minHeight: 0,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignSelf: 'stretch',
+                                            justifyContent: 'flex-start',
+                                            paddingTop: 0,
+                                        }}
+                                    >
+                                        <ConfidenceAllocator
+                                            question={currentQuestion.question}
+                                            options={currentQuestion.options}
+                                            onAnswer={handleAnswer}
+                                            onInteraction={playSelect}
+                                            selectedAnswer={currentAnswer}
+                                            neoBrutal={neoBrutal}
+                                        />
+                                    </div>
                                 )}
                             </div>
                         </div>
