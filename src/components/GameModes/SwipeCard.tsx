@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type PointerEvent, type MouseEvent, type TouchEvent } from 'react'
-import { animate, motion, useSpring, useTransform, type MotionValue } from 'framer-motion'
+import { animate, motion, useSpring, useTransform } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { Move } from 'lucide-react'
 import { captureLiftRect, LiftPortal } from '../QuestionLiftPortal'
@@ -184,10 +184,7 @@ function SwipeCardPlayfield({
     neoBrutal,
     edgeInset,
     bottomEdgeInset,
-    joystickBase,
     puckSize,
-    kx,
-    ky,
     bind,
     puckSurface,
     moveIconColor,
@@ -202,17 +199,14 @@ function SwipeCardPlayfield({
     neoBrutal?: boolean
     edgeInset: number
     bottomEdgeInset: number
-    joystickBase: number
     puckSize: number
-    kx: MotionValue<number>
-    ky: MotionValue<number>
     bind?: () => object
     puckSurface: Record<string, unknown>
     moveIconColor: string
     moveIconSize: number
     onAnswer: (answer: string) => void
     labelPickEnabled?: boolean
-    /** When false, joystick is display-only (e.g. portal mirror above scroll clipping) */
+    /** When false, puck is display-only (e.g. portal mirror above scroll clipping) */
     puckInteractive?: boolean
 }) {
     return (
@@ -304,62 +298,30 @@ function SwipeCardPlayfield({
                 zIndex: 2,
             }}
             >
-                <div style={{
-                    position: 'relative',
-                    width: joystickBase,
-                    height: joystickBase,
-                    pointerEvents: 'none',
-                }}
-                >
-                    <div style={{
-                        position: 'absolute',
-                        inset: 0,
+                <motion.div
+                    {...(bind ? bind() : {})}
+                    aria-label="Drag toward an answer"
+                    style={{
+                        width: puckSize,
+                        height: puckSize,
                         borderRadius: '50%',
-                        boxSizing: 'border-box',
-                        border: neoBrutal ? NB.border : `3px solid ${activeDir ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                        background: neoBrutal
-                            ? `color-mix(in srgb, ${NB.yellow} 14%, transparent)`
-                            : 'linear-gradient(180deg, #ffffff 0%, #f6f6f6 100%)',
-                        boxShadow: neoBrutal ? NB.shadowSm : 'inset 0 2px 8px rgba(0,0,0,0.06)',
-                    }}
-                    />
-                    <div style={{
-                        position: 'absolute',
-                        inset: 0,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        pointerEvents: 'none',
+                        cursor: puckInteractive ? 'grab' : 'default',
+                        touchAction: 'none',
+                        pointerEvents: puckInteractive ? 'auto' : 'none',
+                        ...puckSurface,
                     }}
-                    >
-                        <motion.div
-                            {...(bind ? bind() : {})}
-                            aria-label="Joystick — drag toward an answer"
-                            style={{
-                                x: kx,
-                                y: ky,
-                                width: puckSize,
-                                height: puckSize,
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: puckInteractive ? 'grab' : 'default',
-                                touchAction: 'none',
-                                pointerEvents: puckInteractive ? 'auto' : 'none',
-                                ...puckSurface,
-                            }}
-                            whileTap={puckInteractive ? { cursor: 'grabbing' } : undefined}
-                        >
-                            <Move
-                                size={moveIconSize}
-                                color={moveIconColor}
-                                strokeWidth={neoBrutal ? 2.5 : 2.25}
-                                aria-hidden
-                            />
-                        </motion.div>
-                    </div>
-                </div>
+                    whileTap={puckInteractive ? { cursor: 'grabbing' } : undefined}
+                >
+                    <Move
+                        size={moveIconSize}
+                        color={moveIconColor}
+                        strokeWidth={neoBrutal ? 2.5 : 2.25}
+                        aria-hidden
+                    />
+                </motion.div>
             </div>
         </div>
     )
@@ -384,10 +346,6 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
     const mx = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
     const my = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
     const rotate = useTransform(mx, [-200, 200], [-12, 12])
-    const knobMax = compactUi ? 36 : 42
-    const kx = useTransform(mx, (v) => Math.max(-knobMax, Math.min(knobMax, v * 0.22)))
-    const ky = useTransform(my, (v) => Math.max(-knobMax, Math.min(knobMax, v * 0.22)))
-
     const bind = useDrag(({ down, movement: [dx, dy], first }) => {
         if (first) {
             onDragStart?.()
@@ -437,9 +395,8 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
         filterTaps: true,
     })
 
-    const joystickBase = compactUi ? 92 : 104
     const puckSize = compactUi ? 46 : 52
-    /** Labels hug the inner edges of the joystick playfield */
+    /** Labels hug the inner edges of the playfield */
     const edgeInset = compactUi ? 2 : 4
     /** Bottom row sits slightly higher so the ↓ isn’t flush against the card edge */
     const bottomEdgeInset = compactUi ? 8 : 10
@@ -506,10 +463,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
         neoBrutal,
         edgeInset,
         bottomEdgeInset,
-        joystickBase,
         puckSize,
-        kx,
-        ky,
         puckSurface,
         moveIconColor,
         moveIconSize,
@@ -583,7 +537,7 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                         marginTop: 8,
                         marginBottom: 0,
                     }}>
-                        Use the joystick or tap a label
+                        Drag the card toward an answer or tap a label
                     </p>
                 </div>
 
