@@ -89,8 +89,12 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* Breathing room inside scrollport for shadows and subtle transforms */
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
   /* Inset so card border/shadow and primary actions aren’t clipped at the scroll edge */
   padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding-top: 12px;
   box-sizing: border-box;
 }
 
@@ -231,17 +235,12 @@ body {
 /* Animations */
 @keyframes popIn {
   0% {
-    transform: scale(0.85);
+    transform: scale(0.96) translateY(6px);
     opacity: 0;
   }
 
-  60% {
-    transform: scale(1.04);
-    opacity: 1;
-  }
-
   100% {
-    transform: scale(1);
+    transform: scale(1) translateY(0);
     opacity: 1;
   }
 }

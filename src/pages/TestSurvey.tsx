@@ -43,7 +43,7 @@ function FlameSparks({ burstKey }: { burstKey: number }) {
                     style={{
                         position: 'absolute',
                         top: '50%',
-                        left: '6px',
+                        left: '50%',
                         marginTop: -v.size / 2,
                         marginLeft: -v.size / 2,
                         pointerEvents: 'none',
@@ -215,7 +215,9 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
 
     const currentQuestion = DEMOGRAPHIC_QUESTIONS[currentIndex]
     const currentAnswer = answers[currentQuestion.id]
-    const headerProgress = ((currentIndex + 1) / DEMOGRAPHIC_QUESTIONS.length) * 100
+    const questionCount = DEMOGRAPHIC_QUESTIONS.length
+    /** Top bar: first-time answer momentum (not question position; that's in the bottom nav). */
+    const momentumPercent = Math.min(100, (streak / questionCount) * 100)
 
     const shellBg = neoBrutal ? NB.pageBg : undefined
     const isSpatialTriage = currentQuestion.type === 'spatial-triage'
@@ -256,49 +258,91 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                             justifyContent: 'center',
                             textDecoration: 'none',
                             color: NB.black,
+                            flexShrink: 0,
                         }}
                     >
                         <ArrowLeft size={22} strokeWidth={3} />
                     </Link>
-                    <div style={{
-                        flex: 1,
-                        height: 14,
-                        borderRadius: 999,
-                        background: NB.black,
-                        padding: 3,
-                        boxSizing: 'border-box',
-                    }}>
-                        <div style={{
-                            height: '100%',
-                            width: `${headerProgress}%`,
-                            borderRadius: 999,
-                            background: NB.green,
-                            transition: 'width 0.25s ease',
-                        }} />
-                    </div>
-                    <div style={{
-                        position: 'relative',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontWeight: 900,
-                        fontSize: '1rem',
-                        color: NB.black,
-                        minWidth: 40,
-                        justifyContent: 'flex-end',
-                    }}>
-                        <span
-                            key={`flame-${burstKey}`}
+                    <div
+                        role="progressbar"
+                        aria-valuenow={streak}
+                        aria-valuemin={0}
+                        aria-valuemax={questionCount}
+                        aria-label="Answer momentum"
+                        style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            minWidth: 0,
+                            minHeight: 40,
+                            padding: '5px 8px 5px 7px',
+                            borderRadius: 14,
+                            border: NB.border,
+                            background: '#fff',
+                            boxShadow: NB.shadowSm,
+                            boxSizing: 'border-box',
+                        }}
+                    >
+                        <div
                             style={{
-                                display: 'inline-flex',
-                                transformOrigin: 'center',
-                                animation: burstKey > 0 ? 'nb-flame-pop 0.55s ease-out' : undefined,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 5,
+                                flexShrink: 0,
+                            }}
+                            aria-hidden
+                        >
+                            <div
+                                style={{
+                                    position: 'relative',
+                                    width: 28,
+                                    height: 28,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <span
+                                    key={`flame-${burstKey}`}
+                                    style={{
+                                        display: 'inline-flex',
+                                        transformOrigin: 'center',
+                                        animation: burstKey > 0 ? 'nb-flame-pop 0.55s ease-out' : undefined,
+                                    }}
+                                >
+                                    <Flame size={22} fill="#FF6B35" color="#000" strokeWidth={2} />
+                                </span>
+                                <FlameSparks burstKey={burstKey} />
+                            </div>
+                            <span style={{
+                                fontWeight: 900,
+                                fontSize: '1rem',
+                                color: NB.black,
+                                minWidth: '2ch',
+                                fontVariantNumeric: 'tabular-nums',
+                            }}>{streak}</span>
+                        </div>
+                        <div
+                            style={{
+                                flex: 1,
+                                height: 14,
+                                borderRadius: 999,
+                                background: NB.black,
+                                padding: 3,
+                                boxSizing: 'border-box',
+                                minWidth: 0,
                             }}
                         >
-                            <Flame size={22} fill="#FF6B35" color="#000" strokeWidth={2} />
-                        </span>
-                        <span>{streak}</span>
-                        <FlameSparks burstKey={burstKey} />
+                            <div style={{
+                                height: '100%',
+                                width: `${momentumPercent}%`,
+                                borderRadius: 999,
+                                background: 'linear-gradient(90deg, #FF9F43 0%, #FF6B35 42%, #E85D04 100%)',
+                                transition: 'width 0.25s ease',
+                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.28)',
+                            }} />
+                        </div>
                     </div>
                 </header>
             ) : (
@@ -361,7 +405,7 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                     className={neoBrutal ? 'neo-brutal-on-bg' : undefined}
                     style={{
                     position: 'relative',
-                    zIndex: neoBrutal ? 1 : undefined,
+                    zIndex: neoBrutal ? 6 : undefined,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',

@@ -1,6 +1,8 @@
-import { useState, useEffect, type PointerEvent, type MouseEvent, type TouchEvent } from 'react'
-import { motion, useSpring, useTransform } from 'framer-motion'
+import { useState, useEffect, useRef, type PointerEvent, type MouseEvent, type TouchEvent } from 'react'
+import { animate, motion, useSpring, useTransform, type MotionValue } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
+import { Move } from 'lucide-react'
+import { captureLiftRect, LiftPortal } from '../QuestionLiftPortal'
 import { NB } from '../../styles/neobrutal'
 
 export type Direction = 'up' | 'down' | 'left' | 'right' | null
@@ -16,116 +18,358 @@ interface SwipeCardProps {
 
 const ARROWS: Record<string, string> = { up: '↑', down: '↓', left: '←', right: '→' }
 
-function OptionPill({ dir, label, active, selected, neoBrutal }: { dir: string; label: string; active: boolean; selected: boolean; neoBrutal?: boolean }) {
-    const highlighted = active || selected
-    const color = neoBrutal ? NB.black : 'var(--color-text)'
-
-    return (
-        <div style={{
-            opacity: highlighted ? 1 : 0.35,
-            color: color,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px',
-            transition: 'all 0.2s ease',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            transform: highlighted ? 'scale(1.15)' : 'scale(1)',
-            fontWeight: '900',
-            fontFamily: neoBrutal ? NB.font : 'inherit',
-            maxWidth: '90px',
-            textAlign: 'center',
-        }}>
-            {dir === 'up' && <span style={{ fontSize: '1.8rem', lineHeight: 1 }}>{ARROWS[dir]}</span>}
-            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', wordWrap: 'break-word', width: '100%' }}>{label}</span>
-            {dir !== 'up' && <span style={{ fontSize: '1.8rem', lineHeight: 1 }}>{ARROWS[dir]}</span>}
-        </div>
-    )
-}
-
-function NBOptionButton({
+function OptionPill({
     dir,
     label,
     active,
     selected,
+    neoBrutal,
     onSelect,
-    size = 82,
 }: {
-    dir: 'up' | 'down' | 'left' | 'right'
+    dir: string
     label: string
     active: boolean
     selected: boolean
-    onSelect: () => void
-    size?: number
+    neoBrutal?: boolean
+    onSelect?: () => void
 }) {
+    const [hovered, setHovered] = useState(false)
+
     const highlighted = active || selected
+    const color = neoBrutal ? NB.black : 'var(--color-text)'
+    const isSide = dir === 'left' || dir === 'right'
+    const chipPadding = isSide ? '7px 9px' : '8px 11px'
+
+    const neutralSurface = {
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        borderRadius: 0,
+    }
+
+    const surfaceStyle = selected
+        ? neoBrutal
+            ? {
+                background: NB.green,
+                border: NB.border,
+                boxShadow: NB.shadowSm,
+                padding: chipPadding,
+                borderRadius: 12,
+            }
+            : {
+                background: 'color-mix(in srgb, var(--color-primary) 22%, #ffffff)',
+                border: '2px solid var(--color-primary)',
+                borderBottom: '4px solid var(--color-primary-dark)',
+                padding: chipPadding,
+                borderRadius: 12,
+                color: 'var(--color-primary-dark)',
+            }
+        : (hovered || active)
+            ? neoBrutal
+                ? {
+                    background: NB.yellow,
+                    border: NB.border,
+                    boxShadow: NB.shadow,
+                    padding: chipPadding,
+                    borderRadius: 12,
+                }
+                : {
+                    background: 'color-mix(in srgb, var(--color-primary) 12%, #ffffff)',
+                    border: '2px solid var(--color-primary-light)',
+                    borderBottom: '3px solid var(--color-border-dark)',
+                    padding: chipPadding,
+                    borderRadius: 12,
+                }
+            : neutralSurface
+
     const stopDragStart = (e: PointerEvent | MouseEvent | TouchEvent) => {
-        // Prevent the parent useDrag binding from capturing this pointer so the
-        // button's onClick fires normally and a tap-to-select works.
         e.stopPropagation()
     }
-    return (
-        <button
-            type="button"
-            onPointerDown={stopDragStart}
-            onMouseDown={stopDragStart}
-            onTouchStart={stopDragStart}
-            onClick={(e) => {
-                e.stopPropagation()
-                onSelect()
-            }}
-            style={{
-                width: size,
-                height: size,
-                border: NB.border,
-                borderRadius: 14,
-                background: selected ? NB.green : NB.yellow,
-                boxShadow: highlighted ? NB.shadowSm : NB.shadow,
-                transform: active ? 'translate(3px, 3px) scale(1.03)' : 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 4,
-                padding: '6px 4px',
-                cursor: 'pointer',
-                fontFamily: NB.font,
-                color: NB.black,
-                transition: 'transform 0.08s ease, box-shadow 0.08s ease',
-                userSelect: 'none',
-                touchAction: 'manipulation',
-            }}
-        >
-            <span style={{
-                fontSize: '1.7rem',
-                lineHeight: 1,
-                fontWeight: 900,
-                textShadow: NB.textReadabilityShadow,
-            }}
-            >
-                {ARROWS[dir]}
-            </span>
-            <span
+    const arrowStyle = { fontSize: '1.8rem', lineHeight: 1, display: 'flex' as const, alignItems: 'center' as const, justifyContent: 'center' as const }
+    const labelStyle = {
+        fontSize: '0.875rem',
+        fontWeight: 900,
+        letterSpacing: '0.04em',
+        textTransform: 'uppercase' as const,
+        wordWrap: 'break-word' as const,
+        textAlign: 'center' as const,
+        ...(neoBrutal ? { textShadow: NB.textReadabilityShadow } : {}),
+        ...(isSide ? { maxWidth: 88 } : { width: '100%' }),
+    }
+
+    const inner = isSide ? (
+        dir === 'left' ? (
+            <>
+                <span style={arrowStyle}>{ARROWS.left}</span>
+                <span style={labelStyle}>{label}</span>
+            </>
+        ) : (
+            <>
+                <span style={labelStyle}>{label}</span>
+                <span style={arrowStyle}>{ARROWS.right}</span>
+            </>
+        )
+    ) : (
+        <>
+            {dir === 'up' && <span style={arrowStyle}>{ARROWS.up}</span>}
+            <span style={labelStyle}>{label}</span>
+            {dir === 'down' && (
+                <span style={{ ...arrowStyle, marginTop: -2 }}>{ARROWS.down}</span>
+            )}
+        </>
+    )
+
+    const visualStyle = {
+        opacity: highlighted ? 1 : 0.92,
+        color: color,
+        display: 'flex',
+        flexDirection: (isSide ? 'row' : 'column') as 'row' | 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: isSide ? 6 : (dir === 'down' ? 2 : 4),
+        transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease',
+        userSelect: 'none' as const,
+        transform: active
+            ? 'scale(1.1)'
+            : selected
+                ? 'scale(1.04)'
+                : hovered
+                    ? 'scale(1.03)'
+                    : 'scale(1)',
+        fontWeight: '900',
+        fontFamily: neoBrutal ? NB.font : 'inherit',
+        maxWidth: selected || hovered || active ? '108px' : '92px',
+        textAlign: 'center' as const,
+        boxSizing: 'border-box' as const,
+        ...surfaceStyle,
+    }
+
+    if (onSelect) {
+        return (
+            <button
+                type="button"
+                onPointerDown={stopDragStart}
+                onMouseDown={stopDragStart}
+                onTouchStart={stopDragStart}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+                onClick={(e) => {
+                    e.stopPropagation()
+                    onSelect()
+                }}
                 style={{
-                    fontSize: '0.68rem',
-                    fontWeight: 900,
-                    lineHeight: 1.1,
-                    textAlign: 'center',
-                    padding: '0 2px',
-                    wordBreak: 'break-word',
-                    textShadow: NB.textReadabilityShadow,
+                    ...visualStyle,
+                    pointerEvents: 'auto',
+                    cursor: 'pointer',
+                    touchAction: 'manipulation',
+                    font: 'inherit',
                 }}
             >
-                {label}
-            </span>
-        </button>
+                {inner}
+            </button>
+        )
+    }
+
+    return (
+        <div style={{ ...visualStyle, pointerEvents: 'none' }}>
+            {inner}
+        </div>
+    )
+}
+
+function SwipeCardPlayfield({
+    options,
+    activeDir,
+    selectedAnswer,
+    neoBrutal,
+    edgeInset,
+    bottomEdgeInset,
+    joystickBase,
+    puckSize,
+    kx,
+    ky,
+    bind,
+    puckSurface,
+    moveIconColor,
+    moveIconSize,
+    onAnswer,
+    labelPickEnabled = true,
+    puckInteractive = true,
+}: {
+    options: SwipeCardProps['options']
+    activeDir: Direction
+    selectedAnswer?: string
+    neoBrutal?: boolean
+    edgeInset: number
+    bottomEdgeInset: number
+    joystickBase: number
+    puckSize: number
+    kx: MotionValue<number>
+    ky: MotionValue<number>
+    bind?: () => object
+    puckSurface: Record<string, unknown>
+    moveIconColor: string
+    moveIconSize: number
+    onAnswer: (answer: string) => void
+    labelPickEnabled?: boolean
+    /** When false, joystick is display-only (e.g. portal mirror above scroll clipping) */
+    puckInteractive?: boolean
+}) {
+    return (
+        <div style={{
+            position: 'absolute',
+            inset: 0,
+        }}
+        >
+            <div style={{
+                position: 'absolute',
+                top: edgeInset,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1,
+                maxWidth: 'calc(100% - 8px)',
+            }}
+            >
+                <OptionPill
+                    dir="up"
+                    label={options.up}
+                    active={activeDir === 'up'}
+                    selected={selectedAnswer === options.up}
+                    neoBrutal={neoBrutal}
+                    onSelect={labelPickEnabled ? () => onAnswer(options.up) : undefined}
+                />
+            </div>
+            <div style={{
+                position: 'absolute',
+                left: edgeInset,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 1,
+                maxWidth: '30%',
+            }}
+            >
+                <OptionPill
+                    dir="left"
+                    label={options.left}
+                    active={activeDir === 'left'}
+                    selected={selectedAnswer === options.left}
+                    neoBrutal={neoBrutal}
+                    onSelect={labelPickEnabled ? () => onAnswer(options.left) : undefined}
+                />
+            </div>
+            <div style={{
+                position: 'absolute',
+                right: edgeInset,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 1,
+                maxWidth: '30%',
+            }}
+            >
+                <OptionPill
+                    dir="right"
+                    label={options.right}
+                    active={activeDir === 'right'}
+                    selected={selectedAnswer === options.right}
+                    neoBrutal={neoBrutal}
+                    onSelect={labelPickEnabled ? () => onAnswer(options.right) : undefined}
+                />
+            </div>
+            <div style={{
+                position: 'absolute',
+                bottom: bottomEdgeInset,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1,
+                maxWidth: 'calc(100% - 8px)',
+            }}
+            >
+                <OptionPill
+                    dir="down"
+                    label={options.down}
+                    active={activeDir === 'down'}
+                    selected={selectedAnswer === options.down}
+                    neoBrutal={neoBrutal}
+                    onSelect={labelPickEnabled ? () => onAnswer(options.down) : undefined}
+                />
+            </div>
+
+            <div style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+                zIndex: 2,
+            }}
+            >
+                <div style={{
+                    position: 'relative',
+                    width: joystickBase,
+                    height: joystickBase,
+                    pointerEvents: 'none',
+                }}
+                >
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: '50%',
+                        boxSizing: 'border-box',
+                        border: neoBrutal ? NB.border : `3px solid ${activeDir ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                        background: neoBrutal
+                            ? `color-mix(in srgb, ${NB.yellow} 14%, transparent)`
+                            : 'linear-gradient(180deg, #ffffff 0%, #f6f6f6 100%)',
+                        boxShadow: neoBrutal ? NB.shadowSm : 'inset 0 2px 8px rgba(0,0,0,0.06)',
+                    }}
+                    />
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pointerEvents: 'none',
+                    }}
+                    >
+                        <motion.div
+                            {...(bind ? bind() : {})}
+                            aria-label="Joystick — drag toward an answer"
+                            style={{
+                                x: kx,
+                                y: ky,
+                                width: puckSize,
+                                height: puckSize,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: puckInteractive ? 'grab' : 'default',
+                                touchAction: 'none',
+                                pointerEvents: puckInteractive ? 'auto' : 'none',
+                                ...puckSurface,
+                            }}
+                            whileTap={puckInteractive ? { cursor: 'grabbing' } : undefined}
+                        >
+                            <Move
+                                size={moveIconSize}
+                                color={moveIconColor}
+                                strokeWidth={neoBrutal ? 2.5 : 2.25}
+                                aria-hidden
+                            />
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        </div>
     )
 }
 
 export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAnswer, neoBrutal }: SwipeCardProps) {
     const [activeDir, setActiveDir] = useState<Direction>(null)
     const [compactUi, setCompactUi] = useState(false)
+    const cardRef = useRef<HTMLDivElement>(null)
+    const [liftedRect, setLiftedRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
 
     useEffect(() => {
         const mq = window.matchMedia('(max-height: 640px), (max-width: 360px)')
@@ -135,15 +379,20 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
         return () => mq.removeEventListener('change', apply)
     }, [])
 
-    const neoBtnSize = compactUi ? 72 : 82
     const threshold = compactUi ? 42 : 50
 
     const mx = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
     const my = useSpring(0, { bounce: 0, stiffness: 400, damping: 30 })
     const rotate = useTransform(mx, [-200, 200], [-12, 12])
+    const knobMax = compactUi ? 36 : 42
+    const kx = useTransform(mx, (v) => Math.max(-knobMax, Math.min(knobMax, v * 0.22)))
+    const ky = useTransform(my, (v) => Math.max(-knobMax, Math.min(knobMax, v * 0.22)))
 
     const bind = useDrag(({ down, movement: [dx, dy], first }) => {
-        if (first && onDragStart) onDragStart()
+        if (first) {
+            onDragStart?.()
+            setLiftedRect(captureLiftRect(cardRef.current))
+        }
 
         if (down) {
             mx.set(dx)
@@ -172,11 +421,13 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
                     mx.set(0, false)
                     my.set(0, false)
                     setActiveDir(null)
+                    setLiftedRect(null)
                 }, 200)
             } else {
                 mx.set(0)
                 my.set(0)
                 setActiveDir(null)
+                setLiftedRect(null)
             }
         }
     }, {
@@ -186,192 +437,169 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
         filterTaps: true,
     })
 
+    const joystickBase = compactUi ? 92 : 104
+    const puckSize = compactUi ? 46 : 52
+    /** Labels hug the inner edges of the joystick playfield */
+    const edgeInset = compactUi ? 2 : 4
+    /** Bottom row sits slightly higher so the ↓ isn’t flush against the card edge */
+    const bottomEdgeInset = compactUi ? 8 : 10
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => {
+            animate(mx, [0, -9, 9, -6, 6, 0], { duration: 0.68, ease: 'easeInOut' })
+            animate(my, [0, 7, -7, -4, 4, 0], { duration: 0.68, ease: 'easeInOut' })
+        }, 360)
+        return () => window.clearTimeout(timer)
+    }, [question, mx, my])
+
     const cardNeo = neoBrutal
         ? {
             background: NB.cardBg,
-            borderRadius: '20px',
+            borderRadius: '18px',
             border: NB.border,
             boxShadow: NB.shadow,
-            padding: '22px 18px',
+            padding: '10px',
         }
         : {
             background: 'white',
-            borderRadius: '20px',
+            borderRadius: '18px',
             border: `2px solid ${activeDir ? 'var(--color-primary)' : 'var(--color-border)'}`,
             borderBottom: `4px solid ${activeDir ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
-            padding: '28px 22px',
+            padding: '12px',
         }
 
+    const puckSurface = neoBrutal
+        ? {
+            background: NB.yellow,
+            border: NB.border,
+            boxShadow: activeDir ? NB.shadowSm : NB.shadow,
+        }
+        : {
+            background: 'white',
+            border: `2px solid ${activeDir ? 'var(--color-primary)' : 'var(--color-border)'}`,
+            borderBottom: `4px solid ${activeDir ? 'var(--color-primary-dark)' : 'var(--color-border-dark)'}`,
+            boxShadow: activeDir ? '0 6px 0 var(--color-primary-dark)' : '0 4px 0 #d0d0d0',
+        }
+
+    const moveIconColor = neoBrutal ? NB.black : 'var(--color-primary)'
+    const moveIconSize = compactUi ? 22 : 26
+
+    const cardBox = 'min(300px, calc(100vw - 40px))'
+
+    const cardMotionBase = {
+        x: mx,
+        y: my,
+        rotate,
+        ...cardNeo,
+        boxSizing: 'border-box' as const,
+        position: 'relative' as const,
+        overflow: 'hidden' as const,
+        cursor: 'default' as const,
+        flexShrink: 0,
+        ...(neoBrutal && activeDir ? { outline: `3px solid ${NB.green}` } : {}),
+    }
+
+    const playfieldProps = {
+        options,
+        activeDir,
+        selectedAnswer,
+        neoBrutal,
+        edgeInset,
+        bottomEdgeInset,
+        joystickBase,
+        puckSize,
+        kx,
+        ky,
+        puckSurface,
+        moveIconColor,
+        moveIconSize,
+        onAnswer,
+    }
+
+    const playfieldInteractive = (
+        <SwipeCardPlayfield {...playfieldProps} bind={bind} />
+    )
+
+    const playfieldMirror = (
+        <SwipeCardPlayfield
+            {...playfieldProps}
+            labelPickEnabled={false}
+            puckInteractive={false}
+        />
+    )
+
     return (
-        <div style={{
-            position: 'relative',
-            /* Prefer 320px intrinsic width so flex parents with align-items:center don't shrink-to-fit to ~0 when all inner layout is position:absolute (non-neo). */
-            width: '320px',
-            maxWidth: '100%',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            height: 'clamp(280px, 50dvh, 440px)',
-            maxHeight: 'min(440px, 58dvh)',
-            ...(neoBrutal ? { fontFamily: NB.font } : {}),
-        }} className="animate-pop-in">
-            <motion.div
-                {...(bind() as any)}
-                style={{
-                    x: mx,
-                    y: my,
-                    rotate,
-                    ...cardNeo,
-                    cursor: 'grab',
-                    touchAction: 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
+        <>
+            <LiftPortal rect={liftedRect}>
+                <motion.div
+                    style={{
+                        ...cardMotionBase,
+                        width: '100%',
+                        height: '100%',
+                        maxWidth: 'none',
+                    }}
+                >
+                    {playfieldMirror}
+                </motion.div>
+            </LiftPortal>
+            <div style={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: '340px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                padding: '0 min(12px, 3vw)',
+                boxSizing: 'border-box',
+                overflow: 'visible',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 14,
+                ...(neoBrutal ? { fontFamily: NB.font } : {}),
+            }} className="animate-pop-in">
+                <div style={{
                     width: '100%',
-                    height: '100%',
-                    position: 'relative',
-                    ...(neoBrutal && activeDir ? { outline: `3px solid ${NB.green}` } : {}),
-                }}
-                whileTap={{ cursor: 'grabbing' }}
-            >
-                {neoBrutal ? (
-                    <>
-                        <div style={{
-                            textAlign: 'center',
-                            userSelect: 'none',
-                            pointerEvents: 'none',
-                            padding: '6px 6px 0',
-                        }}>
-                            <h2 style={{
-                                fontSize: '1.25rem',
-                                fontWeight: 900,
-                                lineHeight: 1.25,
-                                color: NB.black,
-                                margin: 0,
-                            }}>
-                                {question}
-                            </h2>
-                            <p style={{
-                                fontSize: '0.78rem',
-                                fontWeight: 800,
-                                color: NB.black,
-                                letterSpacing: '0.08em',
-                                textTransform: 'uppercase',
-                                marginTop: 8,
-                                marginBottom: 0,
-                                opacity: 0.75,
-                            }}>
-                                Swipe to Answer
-                            </p>
-                        </div>
+                    textAlign: 'center',
+                    userSelect: 'none',
+                    pointerEvents: 'none',
+                    padding: neoBrutal ? '0 4px' : '0 6px',
+                }}>
+                    <h2 style={{
+                        fontSize: neoBrutal ? '1.22rem' : '1.32rem',
+                        fontWeight: neoBrutal ? 900 : '800',
+                        lineHeight: 1.35,
+                        color: neoBrutal ? NB.black : 'var(--color-text)',
+                        margin: 0,
+                    }}>
+                        {question}
+                    </h2>
+                    <p style={{
+                        fontSize: neoBrutal ? '0.74rem' : '0.68rem',
+                        fontWeight: 800,
+                        color: neoBrutal ? NB.black : 'var(--color-text-muted)',
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        opacity: 0.8,
+                        marginTop: 8,
+                        marginBottom: 0,
+                    }}>
+                        Use the joystick or tap a label
+                    </p>
+                </div>
 
-                        <div style={{
-                            flex: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginTop: 12,
-                        }}>
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: `repeat(3, ${neoBtnSize}px)`,
-                                gridTemplateRows: `repeat(3, ${neoBtnSize}px)`,
-                                gap: compactUi ? 8 : 10,
-                            }}>
-                                <span />
-                                <NBOptionButton
-                                    dir="up"
-                                    label={options.up}
-                                    active={activeDir === 'up'}
-                                    selected={selectedAnswer === options.up}
-                                    onSelect={() => onAnswer(options.up)}
-                                    size={neoBtnSize}
-                                />
-                                <span />
-                                <NBOptionButton
-                                    dir="left"
-                                    label={options.left}
-                                    active={activeDir === 'left'}
-                                    selected={selectedAnswer === options.left}
-                                    onSelect={() => onAnswer(options.left)}
-                                    size={neoBtnSize}
-                                />
-                                <span />
-                                <NBOptionButton
-                                    dir="right"
-                                    label={options.right}
-                                    active={activeDir === 'right'}
-                                    selected={selectedAnswer === options.right}
-                                    onSelect={() => onAnswer(options.right)}
-                                    size={neoBtnSize}
-                                />
-                                <span />
-                                <NBOptionButton
-                                    dir="down"
-                                    label={options.down}
-                                    active={activeDir === 'down'}
-                                    selected={selectedAnswer === options.down}
-                                    onSelect={() => onAnswer(options.down)}
-                                    size={neoBtnSize}
-                                />
-                                <span />
-                            </div>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        {/* Top Option */}
-                        <div style={{ position: 'absolute', top: '16px', left: '50%', transform: 'translateX(-50%)' }}>
-                            <OptionPill dir="up" label={options.up} active={activeDir === 'up'} selected={selectedAnswer === options.up} neoBrutal={neoBrutal} />
-                        </div>
-
-                        {/* Question (Centered) */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '65%',
-                            textAlign: 'center',
-                            userSelect: 'none',
-                            pointerEvents: 'none'
-                        }}>
-                            <h2 style={{
-                                fontSize: '1.4rem',
-                                fontWeight: '800',
-                                lineHeight: 1.35,
-                                color: neoBrutal ? NB.black : 'var(--color-text)',
-                                marginBottom: '12px',
-                            }}>
-                                {question}
-                            </h2>
-                            <p style={{
-                                fontSize: '0.7rem',
-                                fontWeight: '800',
-                                color: neoBrutal ? NB.black : 'var(--color-text-muted)',
-                                letterSpacing: '0.08em',
-                                textTransform: 'uppercase',
-                                opacity: 0.6,
-                            }}>
-                                swipe to answer
-                            </p>
-                        </div>
-
-                        {/* Left Option */}
-                        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}>
-                            <OptionPill dir="left" label={options.left} active={activeDir === 'left'} selected={selectedAnswer === options.left} neoBrutal={neoBrutal} />
-                        </div>
-
-                        {/* Right Option */}
-                        <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }}>
-                            <OptionPill dir="right" label={options.right} active={activeDir === 'right'} selected={selectedAnswer === options.right} neoBrutal={neoBrutal} />
-                        </div>
-
-                        {/* Bottom Option */}
-                        <div style={{ position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)' }}>
-                            <OptionPill dir="down" label={options.down} active={activeDir === 'down'} selected={selectedAnswer === options.down} neoBrutal={neoBrutal} />
-                        </div>
-                    </>
-                )}
-            </motion.div>
-        </div>
+                <motion.div
+                    ref={cardRef}
+                    style={{
+                        ...cardMotionBase,
+                        width: cardBox,
+                        height: cardBox,
+                        maxWidth: '100%',
+                        opacity: liftedRect ? 0 : 1,
+                    }}
+                >
+                    {playfieldInteractive}
+                </motion.div>
+            </div>
+        </>
     )
 }
