@@ -221,9 +221,6 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
 
     const shellBg = neoBrutal ? NB.pageBg : undefined
     const isSpatialTriage = currentQuestion.type === 'spatial-triage'
-    const questionScrollClassName = isSpatialTriage
-        ? 'test-survey-question-scroll test-survey-question-scroll--fill'
-        : 'test-survey-question-scroll'
 
     return (
         <>
@@ -416,9 +413,6 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                 >
                 {!isDone && !isOnSubmitPage ? (
                     <>
-                        {!isSpatialTriage && (
-                            <div style={{ flex: 1, minHeight: 0, width: '100%' }} aria-hidden />
-                        )}
                         {neoBrutal && (
                             <div className="test-survey-neo-logo-wrap">
                                 <img
@@ -437,21 +431,22 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                 />
                             </div>
                         )}
-                        <div className={questionScrollClassName}>
+                        <div className="test-survey-question-scroll">
                             <div
                                 key={currentQuestion.id}
-                                style={
-                                    isSpatialTriage
-                                        ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%', alignSelf: 'stretch' }
-                                        : {
-                                              width: '100%',
-                                              alignSelf: 'stretch',
-                                              boxSizing: 'border-box',
-                                              display: 'flex',
-                                              flexDirection: 'column',
-                                              alignItems: 'center',
-                                          }
-                                }
+                                style={{
+                                    width: '100%',
+                                    boxSizing: 'border-box',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    ...(
+                                        isSpatialTriage || currentQuestion.type === 'node-connection'
+                                            ? { flex: 1, minHeight: 0, alignSelf: 'stretch' }
+                                            : {}
+                                    ),
+                                }}
                             >
                                 {currentQuestion.type === 'multiple-choice' && (
                                     <SwipeCard
@@ -527,14 +522,27 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                     </div>
                                 )}
                                 {currentQuestion.type === 'node-connection' && (
-                                    <NodeConnection
-                                        question={currentQuestion.question}
-                                        options={currentQuestion.options}
-                                        onAnswer={handleAnswer}
-                                        onInteraction={playSelect}
-                                        selectedAnswer={currentAnswer}
-                                        neoBrutal={neoBrutal}
-                                    />
+                                    <div
+                                        style={{
+                                            flex: 1,
+                                            width: '100%',
+                                            minHeight: 0,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            overflow: 'hidden',
+                                        }}
+                                    >
+                                        <NodeConnection
+                                            question={currentQuestion.question}
+                                            options={currentQuestion.options}
+                                            onAnswer={handleAnswer}
+                                            onInteraction={playSelect}
+                                            selectedAnswer={currentAnswer}
+                                            neoBrutal={neoBrutal}
+                                        />
+                                    </div>
                                 )}
                                 {currentQuestion.type === 'confidence-allocator' && (
                                     <ConfidenceAllocator
@@ -548,9 +556,6 @@ export function TestSurvey({ neoBrutal = false }: { neoBrutal?: boolean }) {
                                 )}
                             </div>
                         </div>
-                        {!isSpatialTriage && (
-                            <div style={{ flex: 1, minHeight: 0, width: '100%' }} aria-hidden />
-                        )}
 
                         <div
                             className="test-survey-bottom-nav"

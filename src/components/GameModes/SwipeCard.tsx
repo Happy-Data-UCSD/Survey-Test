@@ -390,8 +390,6 @@ export function SwipeCard({ question, options, onAnswer, onDragStart, selectedAn
         }
     }, {
         pointer: { capture: true },
-        preventScroll: true,
-        preventScrollAxis: 'xy',
         filterTaps: true,
     })
 

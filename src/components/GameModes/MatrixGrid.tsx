@@ -79,12 +79,14 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
                 </h2>
 
                 {/* Matrix Grid Representation */}
-                <div style={{ width: '100%', overflowX: 'auto' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div className="matrix-grid-matrix" style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
                         {/* Header Row (Columns) */}
                         <div className="matrix-grid-header-offset" style={{ display: 'flex', paddingLeft: '92px', gap: '8px' }}>
                             {columns.map(col => (
-                                <div key={col} style={{
+                                <div
+                                    key={col}
+                                    className="matrix-grid-col-label"
+                                    style={{
                                     flex: 1,
                                     textAlign: 'center',
                                     fontSize: '0.55rem',
@@ -92,7 +94,8 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
                                     color: neoBrutal ? NB.black : 'var(--color-text-muted)',
                                     textTransform: 'uppercase',
                                     lineHeight: 1.1
-                                }}>
+                                }}
+                                >
                                     {col}
                                 </div>
                             ))}
@@ -100,7 +103,10 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
 
                         {/* Data Rows */}
                         {rows.map((row, rIdx) => (
-                            <div key={row} style={{
+                            <div
+                                key={row}
+                                className="matrix-grid-row"
+                                style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 background: neoBrutal
@@ -108,7 +114,8 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
                                     : (rIdx % 2 === 0 ? '#F9F9F9' : 'transparent'),
                                 padding: '4px 8px',
                                 borderRadius: '12px'
-                            }}>
+                            }}
+                            >
                                 {/* Row Label */}
                                 <div className="matrix-grid-row-label" style={{
                                     width: '84px',
@@ -121,12 +128,13 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
                                 </div>
 
                                 {/* Radio Choices */}
-                                <div style={{ display: 'flex', flex: 1, gap: '8px' }}>
+                                <div className="matrix-grid-radio-row" style={{ display: 'flex', flex: 1, gap: '8px' }}>
                                     {columns.map(col => {
                                         const isSelected = selections[row] === col
                                         return (
                                             <motion.button
                                                 key={`${row}-${col}`}
+                                                className="matrix-grid-radio"
                                                 onClick={() => handleSelect(row, col)}
                                                 whileHover={{ scale: neoBrutal ? 1.05 : 1.1 }}
                                                 whileTap={{ scale: neoBrutal ? 0.97 : 0.9 }}
@@ -164,7 +172,6 @@ export function MatrixGrid({ question, rows, columns, onAnswer, onInteraction, s
                                 </div>
                             </div>
                         ))}
-                    </div>
                 </div>
 
                 <motion.button

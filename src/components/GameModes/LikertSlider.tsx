@@ -102,7 +102,7 @@ export function LikertSlider({ question, options, onAnswer, onInteraction, selec
             setSelectedIndex(snapIndex)
             onInteraction?.()
         }
-    }, { filterTaps: true, preventScroll: true })
+    }, { filterTaps: true })
 
     const handleSubmit = () => {
         if (selectedIndex !== null) {
@@ -170,14 +170,17 @@ export function LikertSlider({ question, options, onAnswer, onInteraction, selec
                 </div>
 
                 {/* Slider Track */}
-                <div style={{ 
-                    position: 'relative', 
-                    height: '56px', 
-                    display: 'flex', 
+                <div
+                    className="likert-track-row"
+                    style={{
+                    position: 'relative',
+                    height: '56px',
+                    display: 'flex',
                     alignItems: 'center',
                     paddingLeft: `${thumbWidth / 2}px`,
                     paddingRight: `${thumbWidth / 2}px`,
-                }}>
+                }}
+                >
                     {/* Tick Marks - on top */}
                     {options.map((_, index) => {
                         const tickX = (index / (options.length - 1)) * dragLimit

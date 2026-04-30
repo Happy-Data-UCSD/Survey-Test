@@ -348,7 +348,7 @@ export function SpatialTriage({ question, options, onAnswer, selectedAnswer, neo
                 }
             }
         },
-        { pointer: { capture: true }, preventScroll: true, preventScrollAxis: 'xy' }
+        { pointer: { capture: true } }
     )
 
     return (

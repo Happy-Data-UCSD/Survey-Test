@@ -43,24 +43,58 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
     const containerRef = useRef<HTMLDivElement>(null)
     const layoutWrapperRef = useRef<HTMLDivElement>(null)
     const [layoutSize, setLayoutSize] = useState(400)
+    /** Measured space for width- and height-aware layout (short viewports). */
+    const [sizeBox, setSizeBox] = useState({ w: 400, h: 520 })
 
     const selectedIndex = selectedAnswer ? options.indexOf(selectedAnswer) : -1
 
     const BASE = 400
+    /** Minimum diagram edge when width is the only constraint. */
+    const MIN_LAYOUT = 160
+    /** Hard floor for tiny-height viewports (must stay ≤ height budget). */
+    const ABS_MIN_DIAGRAM = 96
 
     useLayoutEffect(() => {
         const el = layoutWrapperRef.current
         if (!el) return
+        const shell = el.closest('.test-survey-question-scroll') as HTMLElement | null
+        const parent = el.parentElement
+
         const update = () => {
-            const raw = el.getBoundingClientRect().width
-            const w = Math.floor(raw)
-            setLayoutSize(w > 0 ? Math.min(BASE, Math.max(260, w)) : BASE)
+            const elW = el.getBoundingClientRect().width
+            const pw = parent?.clientWidth ?? elW
+            const ph = parent?.clientHeight ?? 0
+            const sw = shell?.clientWidth ?? elW
+            const sh = shell?.clientHeight ?? 0
+            const availW = Math.max(0, Math.floor(Math.min(sw, pw, elW)))
+            // Flex child height when wrapped; else full question band
+            const availH = Math.max(0, Math.floor(ph > 0 ? ph : sh > 0 ? sh : 520))
+            setSizeBox({ w: availW || 400, h: availH || 520 })
+
+            // Space for title, gaps, instruction row — scales with short viewports
+            const verticalNonDiagram = Math.max(44, Math.min(172, availH * 0.33))
+            const budgetH = Math.max(0, availH - verticalNonDiagram)
+            const fromW = Math.min(BASE, Math.max(MIN_LAYOUT, availW))
+            const raw = Math.min(fromW, BASE, budgetH)
+            const floored = Math.floor(raw)
+            // Prefer readable diagram size, but never exceed vertical budget (short screens)
+            const side =
+                floored < ABS_MIN_DIAGRAM ? floored : Math.max(ABS_MIN_DIAGRAM, floored)
+            setLayoutSize(Math.min(BASE, side))
         }
+
         update()
-        const ro = new ResizeObserver(update)
+        const ro = new ResizeObserver(() => {
+            requestAnimationFrame(update)
+        })
+        if (parent) ro.observe(parent)
+        if (shell) ro.observe(shell)
         ro.observe(el)
         return () => ro.disconnect()
     }, [])
+
+    const layoutScale = layoutSize / BASE
+    const heightTight = Math.min(1.12, Math.max(0.68, sizeBox.h / 420))
 
     const cx = layoutSize / 2
     const cy = layoutSize / 2
@@ -73,6 +107,19 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
     const nodeWidth = (110 / BASE) * layoutSize
     const nodeHeight = (90 / BASE) * layoutSize
     const centerNodeSize = (64 / BASE) * layoutSize
+
+    const questionFontRem = Math.max(
+        0.68,
+        Math.min(1.06, (0.68 + 0.42 * layoutScale) * heightTight)
+    )
+    const nodeLabelFontRem = Math.max(0.52, 0.44 + 0.36 * layoutScale)
+    const hintFontRem = Math.max(0.58, (0.58 + 0.22 * layoutScale) * Math.min(1, heightTight + 0.08))
+    const nodePadding = Math.max(4, Math.round(8 * layoutScale))
+    const outerGap = Math.max(6, Math.round(20 * layoutScale * Math.min(1, sizeBox.h / 460)))
+    const moveIconPx = Math.max(16, Math.round(14 + 10 * layoutScale))
+    const svgStrokeMuted = Math.max(1, 1.5 * layoutScale)
+    const svgStrokeDrag = Math.max(1.5, 2.5 * layoutScale)
+    const svgStrokeConnect = Math.max(2, 3 * layoutScale)
 
     const confirmSelection = useCallback((index: number) => {
         setConnectingIndex(index)
@@ -136,8 +183,6 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
         {
             pointer: { capture: true },
             triggerAllEvents: true,
-            preventScroll: true,
-            preventScrollAxis: 'xy',
         }
     )
 
@@ -146,6 +191,9 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
     const lineMuted = neoBrutal ? 'rgba(0,0,0,0.25)' : 'var(--color-border)'
     const lineActive = neoBrutal ? NB.black : 'var(--color-primary)'
 
+    const questionLineClamp =
+        sizeBox.h < 290 ? 2 : sizeBox.h < 350 ? 3 : sizeBox.h < 420 ? 4 : sizeBox.h < 500 ? 5 : 8
+
     return (
         <div
             ref={layoutWrapperRef}
@@ -153,22 +201,34 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 20,
+                justifyContent: 'center',
+                gap: outerGap,
                 width: '100%',
                 maxWidth: 420,
-                overflow: 'visible',
+                flex: 1,
+                minHeight: 0,
+                maxHeight: '100%',
+                overflow: 'hidden',
                 ...(neoBrutal ? { fontFamily: NB.font } : {}),
             }}
             className="animate-pop-in"
         >
             <p
+                title={question}
                 style={{
-                    fontSize: '1.1rem',
+                    fontSize: `${questionFontRem}rem`,
                     fontWeight: 800,
                     color: neoBrutal ? NB.black : 'var(--color-text)',
                     textAlign: 'center',
-                    lineHeight: 1.35,
+                    lineHeight: 1.3,
                     margin: 0,
+                    paddingInline: 4,
+                    flexShrink: 0,
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: questionLineClamp,
+                    overflow: 'hidden',
+                    wordBreak: 'break-word',
                 }}
             >
                 {question}
@@ -181,6 +241,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                     width: layoutSize,
                     height: layoutSize,
                     maxWidth: '100%',
+                    flexShrink: 0,
                 }}
             >
                 <svg
@@ -200,7 +261,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             x2={p.x}
                             y2={p.y}
                             stroke={lineMuted}
-                            strokeWidth={2}
+                            strokeWidth={svgStrokeMuted}
                             strokeDasharray="8 6"
                             strokeOpacity={0.75}
                         />
@@ -215,7 +276,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                                 x2={p.x}
                                 y2={p.y}
                                 stroke={lineActive}
-                                strokeWidth={4}
+                                strokeWidth={svgStrokeConnect}
                                 strokeLinecap="round"
                                 strokeDasharray={len}
                                 initial={{ strokeDashoffset: len }}
@@ -231,7 +292,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             x2={dragEnd.x}
                             y2={dragEnd.y}
                             stroke={lineActive}
-                            strokeWidth={3}
+                            strokeWidth={svgStrokeDrag}
                             strokeLinecap="round"
                         />
                     )}
@@ -245,7 +306,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                                 x2={p.x}
                                 y2={p.y}
                                 stroke={lineActive}
-                                strokeWidth={2}
+                                strokeWidth={svgStrokeMuted}
                                 strokeDasharray={`${len} ${len}`}
                                 strokeOpacity={0.5}
                                 initial={{ strokeDashoffset: len }}
@@ -283,7 +344,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                padding: 8,
+                                padding: nodePadding,
                                 cursor: isDisabled ? 'default' : 'pointer',
                                 transition: 'all 0.15s ease',
                                 boxSizing: 'border-box',
@@ -295,7 +356,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             <span
                                 title={opt}
                                 style={{
-                                    fontSize: '0.8rem',
+                                    fontSize: `${nodeLabelFontRem}rem`,
                                     fontWeight: '800',
                                     color: isHighlighted ? (neoBrutal ? NB.yellow : 'white') : (neoBrutal ? NB.black : 'var(--color-text)'),
                                     textAlign: 'center',
@@ -303,9 +364,9 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                     display: '-webkit-box',
-                                    WebkitLineClamp: 4,
+                                    WebkitLineClamp: layoutScale < 0.68 ? 3 : 4,
                                     WebkitBoxOrient: 'vertical',
-                                    padding: '0 2px',
+                                    padding: '0 1px',
                                 }}
                             >
                                 {opt}
@@ -350,12 +411,12 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                         }
                         transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
                     >
-                        <Move size={24} style={{ color: neoBrutal ? NB.black : 'var(--color-primary)' }} />
+                        <Move size={moveIconPx} style={{ color: neoBrutal ? NB.black : 'var(--color-primary)' }} />
                     </motion.div>
                 )}
             </div>
 
-            <div style={{ position: 'relative', height: '32px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ position: 'relative', minHeight: `${Math.max(28, Math.round(32 * layoutScale))}px`, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', paddingInline: 4 }}>
                 <AnimatePresence>
                     {releaseMissed && (
                         <motion.p
@@ -364,7 +425,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             exit={{ opacity: 0 }}
                             style={{
                                 position: 'absolute',
-                                fontSize: '0.8rem',
+                                fontSize: `${hintFontRem}rem`,
                                 fontWeight: '800',
                                 color: 'var(--color-danger)',
                                 letterSpacing: '0.05em',
@@ -382,7 +443,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                             exit={{ opacity: 0 }}
                             style={{
                                 position: 'absolute',
-                                fontSize: '0.8rem',
+                                fontSize: `${hintFontRem}rem`,
                                 fontWeight: '800',
                                 color: neoBrutal ? NB.black : 'var(--color-primary)',
                                 letterSpacing: '0.05em',
@@ -397,7 +458,7 @@ export function NodeConnection({ question, options, onAnswer, onInteraction, sel
                 <motion.p
                     style={{
                         position: 'absolute',
-                        fontSize: '0.8rem',
+                        fontSize: `${hintFontRem}rem`,
                         fontWeight: '700',
                         color: 'var(--color-text-muted)',
                         letterSpacing: '0.06em',

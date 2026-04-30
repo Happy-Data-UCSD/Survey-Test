@@ -74,45 +74,56 @@ body {
   padding-right: max(0px, env(safe-area-inset-right));
 }
 
-/* Test Survey: scrollable question band + responsive neo logo */
+/* Test Survey: question band fills space between header and nav (no scroll) */
 .test-survey-question-scroll {
   container-name: game;
-  container-type: inline-size;
-  flex: 0 1 auto;
+  container-type: size;
+  flex: 1 1 0;
   width: 100%;
   min-height: 0;
-  max-height: min(84dvh, 100%);
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* Breathing room inside scrollport for shadows and subtle transforms */
   padding-left: max(12px, env(safe-area-inset-left));
   padding-right: max(12px, env(safe-area-inset-right));
-  /* Inset so card border/shadow and primary actions aren’t clipped at the scroll edge */
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
   padding-top: 12px;
   box-sizing: border-box;
 }
 
-/* Full-height modes (e.g. spatial triage): consume space between header and nav */
-.test-survey-question-scroll--fill {
-  flex: 1 1 0;
-  max-height: none;
-}
-
-/* Matrix: narrower row gutter + label on small question column */
+/* Matrix: fit grid without horizontal scroll at narrow widths */
 @container game (max-width: 360px) {
   .matrix-grid-header-offset {
-    padding-left: 76px !important;
+    padding-left: 64px !important;
+    gap: 4px !important;
   }
 
   .matrix-grid-row-label {
-    width: 68px !important;
-    font-size: 0.68rem !important;
+    width: 60px !important;
+    font-size: 0.62rem !important;
+  }
+
+  .matrix-grid-matrix {
+    gap: 4px !important;
+  }
+
+  .matrix-grid-radio {
+    height: 22px !important;
+    border-radius: 6px !important;
+  }
+
+  .matrix-grid-row {
+    padding: 3px 6px !important;
+  }
+
+  .matrix-grid-radio-row {
+    gap: 4px !important;
+  }
+
+  .matrix-grid-col-label {
+    font-size: 0.5rem !important;
   }
 }
 
@@ -125,6 +136,28 @@ body {
 
   .game-mode-question-title {
     font-size: clamp(1rem, 3cqw + 0.65rem, 1.2rem) !important;
+  }
+}
+
+/* Short viewports: compress card shells so content fits without clipping */
+@container game (max-height: 580px) {
+  .game-mode-card-shell {
+    padding: clamp(12px, 3cqh, 22px) clamp(12px, 3cqw, 18px) !important;
+    gap: clamp(10px, 2.5cqh, 18px) !important;
+  }
+
+  .game-mode-question-title {
+    font-size: clamp(0.95rem, 2cqh + 0.55rem, 1.15rem) !important;
+    margin-bottom: 4px !important;
+  }
+
+  .game-mode-open-ended-textarea {
+    min-height: 72px !important;
+    padding: 8px !important;
+  }
+
+  .likert-track-row {
+    height: 44px !important;
   }
 }
 

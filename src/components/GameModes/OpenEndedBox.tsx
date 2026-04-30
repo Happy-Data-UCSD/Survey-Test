@@ -82,6 +82,7 @@ export function OpenEndedBox({ question, onAnswer, onInteraction, onFocus, onTyp
                     boxShadow: neoBrutal && !focused ? NB.shadowSm : undefined,
                 }}>
                     <textarea
+                        className="game-mode-open-ended-textarea"
                         value={text}
                         onChange={(e) => {
                             setText(e.target.value)
