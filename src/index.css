@@ -481,3 +481,103 @@ body {
   height: 100%;
   display: block;
 }
+
+/* === Typing Fire — two-color 🔥 silhouette (paths morph via JS; motion here) === */
+.tf-motion-slot {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-origin: bottom center;
+}
+
+/* Idle: translates only — applies when heat < 0.4 */
+@keyframes tf-motion-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+.tf-motion-bob {
+  animation: tf-motion-bob 1.8s ease-in-out infinite;
+}
+
+/* Hot: faint sideward sway — applies when heat >= 0.4 */
+@keyframes tf-motion-wiggle {
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
+}
+
+.tf-motion-wiggle {
+  animation: tf-motion-wiggle 0.22s ease-in-out infinite;
+}
+
+.tf-spark-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+@keyframes tf-spark-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--sx, 0px), 6px, 0) scale(0.55);
+  }
+  22% {
+    opacity: 0.94;
+    transform: translate3d(var(--sx, 0px), -12px, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--sx, 0px), -92px, 0) scale(0.45);
+  }
+}
+
+.typing-fire-emoji .tf-spark {
+  position: absolute;
+  border-radius: 50%;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+  animation: tf-spark-rise 1.08s linear infinite;
+}
+
+/* One-shot burst when burstKey increments */
+@keyframes nb-fire-burst {
+  0%   { transform: rotate(0deg)   scale(1);    }
+  38%  { transform: rotate(-6deg)  scale(1.06); }
+  72%  { transform: rotate(4deg)   scale(0.99); }
+  100% { transform: rotate(0deg)   scale(1);    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-fire-wrap,
+  .typing-fire-wrap * {
+    animation: none !important;
+  }
+}
+
+/* Slot used in surveys to give the big fire room above the question card. */
+.typing-fire-slot {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+  padding-bottom: 12px;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+/* Height-collapse rules so the fire stays sane on short viewports. */
+@media (max-height: 700px) {
+  .typing-fire-slot { padding-top: 6px; padding-bottom: 10px; }
+  /* Aspect 200×286 (rounded bowl needs extra vertical VB) */
+  .typing-fire-slot .typing-fire-wrap { width: 132px !important; height: 189px !important; }
+}
+
+@media (max-height: 580px) {
+  .typing-fire-slot { padding-top: 4px; padding-bottom: 6px; }
+  .typing-fire-slot .typing-fire-wrap { width: 100px !important; height: 143px !important; }
+}
+
+@media (max-height: 520px) {
+  .typing-fire-slot { display: none; }
+}

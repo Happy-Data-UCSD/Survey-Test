@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { NB } from '../../styles/neobrutal'
+import { useTypingFire } from '../TypingFire'
 
 interface OpenEndedBoxProps {
     question: string
@@ -18,9 +19,12 @@ export function OpenEndedBox({ question, onAnswer, onInteraction, onFocus, onTyp
     const [text, setText] = useState(selectedAnswer || "")
     const [committed, setCommitted] = useState(false)
     const [focused, setFocused] = useState(false)
+    const { registerKeystroke, confirm } = useTypingFire()
 
     const handleSubmit = () => {
         if (text.trim().length > 0) {
+            // Award the finishing-strong bonus before transitioning out.
+            confirm()
             setCommitted(true)
             onInteraction()
             onAnswer(text)
@@ -85,7 +89,11 @@ export function OpenEndedBox({ question, onAnswer, onInteraction, onFocus, onTyp
                         className="game-mode-open-ended-textarea"
                         value={text}
                         onChange={(e) => {
-                            setText(e.target.value)
+                            const next = e.target.value
+                            // Count net inserted characters (handles paste; ignores deletes).
+                            const added = Math.max(0, next.length - text.length)
+                            if (added > 0) registerKeystroke(added)
+                            setText(next)
                             onType?.()
                         }}
                         onFocus={() => { setFocused(true); (onFocus ?? onInteraction)() }}

@@ -13,6 +13,7 @@ import { ConfidenceAllocator } from '../components/GameModes/ConfidenceAllocator
 import { MultipleChoice } from '../components/GameModes/MultipleChoice'
 import { useGamifiedSound } from '../hooks/useGamifiedSound'
 import { SURVEY_QUESTIONS } from '../types/survey'
+import { TypingFire } from '../components/TypingFire'
 
 export function AllQuestionsSurvey() {
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -107,6 +108,11 @@ export function AllQuestionsSurvey() {
                                   }
                         }
                     >
+                        {currentQuestion.type === 'open-ended' && (
+                            <div className="typing-fire-slot">
+                                <TypingFire size={168} />
+                            </div>
+                        )}
                         {currentQuestion.type === 'multiple-choice' && (
                             <SwipeCard
                                 question={currentQuestion.question}
