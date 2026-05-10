@@ -79,7 +79,11 @@ function nearestArcEndpointF(thetaStart: number, spanRad: number, thetaMouse: nu
     return d0 <= d1 ? 0 : 1
 }
 
-const SLICE_COLORS_NB = [NB.yellow, NB.green, '#7EB6FF', '#FF9B6A', '#C4A7FF', '#5DD5C8'] as const
+const SLICE_COLORS_NB = [NB.yellow, NB.green, '#4EA8FF', '#FF8A5B', '#B996FF', '#FF7BB0'] as const
+const PIE_STROKE_NB = 5
+const PIE_STROKE_DEFAULT = 2
+const LEADER_STROKE_NB = 4.5
+const LEADER_STROKE_DEFAULT = 2.5
 const SLICE_COLORS_DEFAULT = [
     'var(--color-primary)',
     'var(--color-primary-light, #5B8DEF)',
@@ -252,6 +256,7 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
         foY: number
         textAlign: 'left' | 'right' | 'center'
         label: string
+        bg: string
     }[] = []
     const labelInnerR = r * 0.48
     const rRim = r + LEADER_RIM
@@ -338,6 +343,7 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
             foY,
             textAlign,
             label: options[i],
+            bg: colors[i % colors.length],
         })
     }
 
@@ -367,8 +373,8 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
         }
     }
 
-    const innerPctFill = '#ffffff'
-    const innerPctStroke = 'rgba(0,0,0,0.5)'
+    const innerPctFill = neoBrutal ? NB.black : '#ffffff'
+    const innerPctStroke = neoBrutal ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.5)'
 
     return (
         <div
@@ -439,10 +445,16 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                     minHeight: 0,
                     containerType: 'size',
                     containerName: 'allocator-chart',
-                    paddingTop: 'clamp(6px, 1cqh, 14px)',
-                    paddingBottom: 'clamp(6px, 1cqh, 14px)',
+                    paddingTop: 'clamp(8px, 1.2cqh, 16px)',
+                    paddingBottom: 'clamp(8px, 1.2cqh, 16px)',
                     boxSizing: 'border-box',
                     overflow: 'visible',
+                    background: neoBrutal ? NB.cardBg : 'transparent',
+                    border: neoBrutal ? NB.border : 'none',
+                    borderRadius: neoBrutal ? 22 : 0,
+                    boxShadow: neoBrutal ? NB.shadow : 'none',
+                    paddingLeft: neoBrutal ? 'clamp(8px, 1.2cqh, 16px)' : 0,
+                    paddingRight: neoBrutal ? 'clamp(8px, 1.2cqh, 16px)' : 0,
                 }}
             >
                 <div
@@ -474,7 +486,7 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                             d={s.path}
                             fill={s.color}
                             stroke={stroke}
-                            strokeWidth={neoBrutal ? 3 : 2}
+                            strokeWidth={neoBrutal ? PIE_STROKE_NB : PIE_STROKE_DEFAULT}
                             strokeLinejoin="round"
                         />
                     ))}
@@ -485,7 +497,7 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                                 d={c.d}
                                 fill="none"
                                 stroke={stroke}
-                                strokeWidth={neoBrutal ? 3 : 2.5}
+                                strokeWidth={neoBrutal ? LEADER_STROKE_NB : LEADER_STROKE_DEFAULT}
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 vectorEffect="nonScalingStroke"
@@ -531,9 +543,9 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                                 cx={h.bx}
                                 cy={h.by}
                                 r={18}
-                                fill={neoBrutal ? NB.cardBg : 'white'}
+                                fill={neoBrutal ? NB.yellow : 'white'}
                                 stroke={stroke}
-                                strokeWidth={neoBrutal ? 3 : 2}
+                                strokeWidth={neoBrutal ? PIE_STROKE_NB : PIE_STROKE_DEFAULT}
                                 style={{
                                     pointerEvents: 'none',
                                 }}
@@ -557,7 +569,7 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                                         fontWeight: 900,
                                         fontFamily: neoBrutal ? NB.font : 'inherit',
                                         color: neoBrutal ? NB.black : 'var(--color-text)',
-                                        textAlign: 'center',
+                                        textAlign: c.textAlign,
                                         lineHeight: 1.2,
                                         letterSpacing: '-0.015em',
                                         overflow: 'hidden',
@@ -571,7 +583,7 @@ export function ConfidenceAllocator({ question, options, onAnswer, onInteraction
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        backgroundColor: neoBrutal ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.94)',
+                                        backgroundColor: neoBrutal ? c.bg : 'rgba(255,255,255,0.94)',
                                         borderRadius: neoBrutal ? 12 : 10,
                                         border: neoBrutal ? `2px solid ${NB.black}` : '1px solid rgba(0,0,0,0.12)',
                                         boxShadow: neoBrutal
